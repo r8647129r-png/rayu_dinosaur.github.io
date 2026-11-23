@@ -168,10 +168,16 @@ export default async function MuseumPage({ params }: { params: Promise<Params> }
               </p>
               <div className="px-4 py-3">
                 <p className="text-slate-ink">{m.dig.name}</p>
-                {m.dig.available && (
+                {m.dig.price && (
                   <p className="mt-1 text-2xl font-bold tabular-nums text-slate-ink">
-                    {yen(m.dig.price)}
-                    <span className="ml-1 text-xs font-normal text-slate-500">/ 人</span>
+                    {m.dig.price.adult === 0 ? "無料" : yen(m.dig.price.adult)}
+                    {m.dig.price.adult > 0 && <span className="ml-1 text-xs font-normal text-slate-500">大人 / 人</span>}
+                    {m.dig.price.child !== m.dig.price.adult && (
+                      <span className="ml-3 text-base">
+                        {yen(m.dig.price.child)}
+                        <span className="ml-1 text-xs font-normal text-slate-500">小中学生</span>
+                      </span>
+                    )}
                   </p>
                 )}
                 <p className="mt-2 text-xs text-slate-500">{m.dig.note}</p>
@@ -189,6 +195,11 @@ export default async function MuseumPage({ params }: { params: Promise<Params> }
         <section className="grid gap-6 md:grid-cols-2">
           <div>
             <SectionHeading icon={UtensilsCrossed} title={m.restaurant.inHouse ? "館内レストラン・カフェ" : "お食事（周辺の目安）"} lead={m.restaurant.note} />
+            {m.restaurant.menu.length === 0 ? (
+              <p className="border border-slate-200 bg-paper p-4 text-sm text-slate-500">
+                公式サイトに館内飲食メニューの掲載はありません。シミュレーターでは食事予算を自由に入力できます。
+              </p>
+            ) : (
             <table className="w-full border border-slate-200 bg-white text-sm">
               <tbody className="divide-y divide-slate-100">
                 {m.restaurant.menu.map((i) => (
@@ -199,14 +210,19 @@ export default async function MuseumPage({ params }: { params: Promise<Params> }
                 ))}
               </tbody>
             </table>
+            )}
+            {m.restaurant.menu.length > 0 && <p className="mt-2 text-xs text-slate-500">価格は公式掲載の税込価格です。</p>}
           </div>
           <div>
-            <SectionHeading icon={Gift} title="ミュージアムショップ" lead="人気アイテムの価格目安" />
+            <SectionHeading icon={Gift} title="ミュージアムショップ" lead="価格は公式に掲載がないため、編集部の目安です" />
             <table className="w-full border border-slate-200 bg-white text-sm">
               <tbody className="divide-y divide-slate-100">
                 {m.souvenirs.map((i) => (
                   <tr key={i.id}>
-                    <th className="px-4 py-2.5 text-left font-normal text-slate-ink">{i.name}</th>
+                    <th className="px-4 py-2.5 text-left font-normal text-slate-ink">
+                      {i.name}
+                      {i.estimate && <span className="ml-2 border border-slate-300 px-1 text-[10px] text-slate-500">目安</span>}
+                    </th>
                     <td className="whitespace-nowrap px-4 py-2.5 text-right tabular-nums text-slate-ink">{yen(i.price)}</td>
                   </tr>
                 ))}
@@ -244,6 +260,18 @@ export default async function MuseumPage({ params }: { params: Promise<Params> }
                 <a href={m.officialUrl} target="_blank" rel="noopener noreferrer" className="break-all text-forest underline underline-offset-4">
                   {m.officialUrl}
                 </a>
+              </InfoRow>
+              <InfoRow icon={ExternalLink} label="情報の出典">
+                <ul className="space-y-1">
+                  {m.sources.map((src) => (
+                    <li key={src.url}>
+                      <a href={src.url} target="_blank" rel="noopener noreferrer" className="text-forest underline underline-offset-4">
+                        {src.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-1 text-xs text-slate-500">{m.lastVerified} 時点で公式サイトを確認</p>
               </InfoRow>
             </dl>
             <PlanningLinks museum={m} categories={["stay", "rentacar"]} />

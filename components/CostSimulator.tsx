@@ -58,7 +58,14 @@ function ItemPicker({
         <li key={item.id} className="flex items-center justify-between gap-3 py-2.5">
           <div className="min-w-0">
             <p className="text-sm text-slate-ink">{item.name}</p>
-            <p className="text-xs tabular-nums text-slate-500">{yen(item.price)}（税込）</p>
+            <p className="text-xs tabular-nums text-slate-500">
+              {yen(item.price)}
+              {item.estimate ? (
+                <span className="ml-1.5 border border-slate-300 px-1 text-[10px] text-slate-500">目安</span>
+              ) : (
+                "（税込）"
+              )}
+            </p>
           </div>
           <Counter
             label={item.name}
@@ -81,10 +88,12 @@ export default function CostSimulator({
 }) {
   const [party, setParty] = useState<Party>(INITIAL_PARTY);
   const [useSpecial, setUseSpecial] = useState(false);
-  const [digCount, setDigCount] = useState(0);
+  const [digAdult, setDigAdult] = useState(0);
+  const [digChild, setDigChild] = useState(0);
   const [food, setFood] = useState<Record<string, number>>({});
   const [gifts, setGifts] = useState<Record<string, number>>({});
   const [customGift, setCustomGift] = useState("");
+  const [customFood, setCustomFood] = useState("");
 
   const totalPeople = party.adult + party.student + party.child + party.preschool;
   const fees = useSpecial && m.specialExhibit ? m.specialExhibit.fees : m.fees;
@@ -98,23 +107,27 @@ export default function CostSimulator({
     })).filter((l) => l.count > 0);
     const admission = admissionLines.reduce((s, l) => s + l.subtotal, 0);
 
-    const effectiveDig = Math.min(digCount, totalPeople);
-    const dig = m.dig.available ? effectiveDig * m.dig.price : 0;
+    const dig = m.dig.price
+      ? Math.min(digAdult, party.adult + party.student) * m.dig.price.adult +
+        Math.min(digChild, party.child + party.preschool) * m.dig.price.child
+      : 0;
+    const toYen = (v: string) => Math.max(0, Math.floor(Number(v) || 0));
     const sumItems = (items: PriceItem[], q: Record<string, number>) =>
       items.reduce((s, i) => s + (q[i.id] ?? 0) * i.price, 0);
-    const foodTotal = sumItems(m.restaurant.menu, food);
+    const foodTotal = sumItems(m.restaurant.menu, food) + toYen(customFood);
     const giftItems = sumItems(m.souvenirs, gifts);
-    const custom = Math.max(0, Math.floor(Number(customGift) || 0));
-    const giftTotal = giftItems + custom;
+    const giftTotal = giftItems + toYen(customGift);
     const extras = dig + foodTotal + giftTotal;
 
     return { admissionLines, admission, dig, foodTotal, giftTotal, extras, total: admission + extras };
-  }, [party, fees, digCount, totalPeople, m, food, gifts, customGift]);
+  }, [party, fees, digAdult, digChild, m, food, gifts, customGift, customFood]);
 
   const reset = () => {
     setParty(INITIAL_PARTY);
     setUseSpecial(false);
-    setDigCount(0);
+    setDigAdult(0);
+    setDigChild(0);
+    setCustomFood("");
     setFood({});
     setGifts({});
     setCustomGift("");
@@ -172,23 +185,30 @@ export default function CostSimulator({
           </ul>
         </Panel>
 
-        <Panel icon={Pickaxe} title="化石発掘体験">
-          {m.dig.available ? (
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm text-slate-ink">{m.dig.name}</p>
-                <p className="text-xs tabular-nums text-slate-500">{yen(m.dig.price)} / 人（目安）</p>
-                <p className="mt-1 text-xs text-slate-500">{m.dig.note}</p>
-              </div>
-              <Counter
-                label="発掘体験の参加人数"
-                value={Math.min(digCount, totalPeople)}
-                onChange={setDigCount}
-                max={totalPeople}
-              />
-            </div>
+        <Panel icon={Pickaxe} title="化石発掘・体験">
+          <p className="text-sm text-slate-ink">{m.dig.name}</p>
+          <p className="mt-1 text-xs text-slate-500">{m.dig.note}</p>
+          {m.dig.price ? (
+            <ul className="mt-2 divide-y divide-slate-100 border-t border-slate-100">
+              {[
+                { label: "参加人数（大人・高大生）", unit: m.dig.price.adult, value: digAdult, set: setDigAdult, max: party.adult + party.student },
+                { label: "参加人数（小中学生以下）", unit: m.dig.price.child, value: digChild, set: setDigChild, max: party.child + party.preschool },
+              ].map((r) => (
+                <li key={r.label} className="flex items-center justify-between gap-3 py-2.5">
+                  <div>
+                    <p className="text-sm text-slate-ink">{r.label}</p>
+                    <p className="text-xs tabular-nums text-slate-500">{r.unit === 0 ? "無料" : `${yen(r.unit)} / 人`}</p>
+                  </div>
+                  <Counter label={r.label} value={Math.min(r.value, r.max)} onChange={r.set} max={r.max} />
+                </li>
+              ))}
+            </ul>
           ) : (
-            <p className="text-sm text-slate-500">{m.dig.note}</p>
+            m.dig.available && (
+              <p className="mt-2 border-t border-slate-100 pt-2 text-xs text-slate-500">
+                料金は公式に記載がないため、施設へ確認のうえ「その他」に入力してください。
+              </p>
+            )
           )}
         </Panel>
 
@@ -198,11 +218,32 @@ export default function CostSimulator({
           aside={<span className="text-xs tabular-nums text-slate-500">{yen(result.foodTotal)}</span>}
         >
           <p className="mb-1 text-xs text-slate-500">{m.restaurant.note}</p>
-          <ItemPicker
-            items={m.restaurant.menu}
-            qty={food}
-            setQty={(id, v) => setFood((f) => ({ ...f, [id]: v }))}
-          />
+          {m.restaurant.menu.length > 0 && (
+            <ItemPicker
+              items={m.restaurant.menu}
+              qty={food}
+              setQty={(id, v) => setFood((f) => ({ ...f, [id]: v }))}
+            />
+          )}
+          <label className="mt-2 flex items-center justify-between gap-3 border-t border-slate-100 pt-3 text-sm">
+            <span className="text-slate-ink">
+              {m.restaurant.menu.length > 0 ? "その他の飲食（任意金額）" : "食事予算（周辺・持参など）"}
+            </span>
+            <span className="flex items-center gap-1">
+              <input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                step={100}
+                value={customFood}
+                onChange={(e) => setCustomFood(e.target.value)}
+                placeholder="0"
+                aria-label="飲食の任意金額"
+                className="w-28 rounded-none border border-slate-300 px-2 py-1.5 text-right tabular-nums focus:border-forest focus:outline-none"
+              />
+              <span className="text-slate-500">円</span>
+            </span>
+          </label>
         </Panel>
 
         <Panel
@@ -223,6 +264,7 @@ export default function CostSimulator({
                 inputMode="numeric"
                 min={0}
                 step={100}
+                aria-label="お土産の任意金額"
                 value={customGift}
                 onChange={(e) => setCustomGift(e.target.value)}
                 placeholder="0"
@@ -278,7 +320,7 @@ export default function CostSimulator({
               </p>
               <ul className="mt-1 space-y-0.5 pl-6 text-xs text-slate-500">
                 <li className="flex justify-between tabular-nums">
-                  <span>化石発掘体験</span>
+                  <span>発掘・体験</span>
                   <span>{yen(result.dig)}</span>
                 </li>
                 <li className="flex justify-between tabular-nums">

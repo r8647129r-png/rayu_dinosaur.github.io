@@ -4,10 +4,8 @@
  * 施設を追加する場合は、MUSEUMS 配列に Museum 型のオブジェクトを1件追加するだけで
  * 一覧・詳細ページ・シミュレーター・絞り込みすべてに自動反映されます。
  *
- * 【重要】料金・メニュー・営業時間は改定されることがあります。
- * 掲載前・定期的に各施設の公式サイトで確認し、lastVerified を更新してください。
- * メニュー・お土産は「現地価格の目安」として設定したサンプル値を含みます。
- * 実際に訪問・確認した値に差し替えて運用してください。
+ * 料金・時間・メニューは 2026年11月 に各施設の公式サイトで確認した値です（sources 参照）。
+ * PriceItem の estimate: true は公式に価格の記載がない「目安」です。画面上でも「目安」と表示されます。
  */
 
 export type AreaKey = "hokkaido-tohoku" | "kanto" | "hokuriku-chubu" | "kansai" | "kyushu";
@@ -27,7 +25,8 @@ export interface PriceItem {
   name: string;
   /** 税込価格（円） */
   price: number;
-  note?: string;
+  /** true: 公式に価格記載がない目安価格 */
+  estimate?: boolean;
 }
 
 export interface FeeTable {
@@ -38,46 +37,33 @@ export interface FeeTable {
 }
 
 export interface Museum {
-  id: string; // URLスラッグ
+  id: string;
   name: string;
   shortName: string;
   prefecture: string;
   area: AreaKey;
   address: string;
-  access: {
-    station: string;
-    ic: string;
-    note?: string;
-  };
+  access: { station: string; ic: string; note?: string };
   hours: string;
   closed: string;
   officialUrl: string;
-  /** 独自5段階評価 */
-  ratings: {
-    exhibit: Rating; // 展示の迫力
-    dig: Rating; // 発掘体験の充実度
-    food: Rating; // 館内グルメ満足度
-    family: Rating; // 子連れ・アクセス快適度
-  };
+  ratings: { exhibit: Rating; dig: Rating; food: Rating; family: Rating };
   review: {
     headline: string;
     body: string;
-    tips: string[]; // 攻略メモ（混雑回避のコツなど）
-    reservationLevel: Rating; // 予約の難易度（5が最難）
+    tips: string[];
+    reservationLevel: Rating;
     reservationNote: string;
-    recommendedStay: string; // 滞在時間の目安
+    recommendedStay: string;
   };
   fees: FeeTable;
   feeNotes: string[];
-  specialExhibit?: {
-    label: string;
-    fees: FeeTable;
-    note: string;
-  };
+  specialExhibit?: { label: string; fees: FeeTable; note: string };
   dig: {
     available: boolean;
     name: string;
-    price: number; // 1人あたり（円）
+    /** 1人あたり料金。null は「料金は施設へ確認」 */
+    price: { adult: number; child: number } | null;
     note: string;
   };
   restaurant: {
@@ -87,13 +73,8 @@ export interface Museum {
     menu: PriceItem[];
   };
   souvenirs: PriceItem[];
-  /** 手配サポートリンク用の検索キーワード */
-  search: {
-    stay: string;
-    rentacarFrom: string;
-    lunch: string;
-    ticket: string;
-  };
+  search: { stay: string; rentacarFrom: string; lunch: string; ticket: string };
+  sources: { label: string; url: string }[];
   lastVerified: string; // YYYY-MM
 }
 
@@ -106,67 +87,67 @@ export const MUSEUMS: Museum[] = [
     area: "hokuriku-chubu",
     address: "福井県勝山市村岡町寺尾51-11（かつやま恐竜の森内）",
     access: {
-      station: "えちぜん鉄道 勝山駅からバス・タクシー約10〜15分",
-      ic: "中部縦貫自動車道 勝山IC から約10分",
-      note: "福井駅から勝山駅までえちぜん鉄道で約55分。週末は直行バスの運行あり（時期により異なる）。",
+      station: "えちぜん鉄道 勝山駅からバスまたはタクシー。JR福井駅から直行バスあり（毎日運行）",
+      ic: "中部縦貫自動車道 勝山IC から国道416号（福井北JCTから約30分）",
+      note: "駐車場は約1,400台（無料）。小松空港から空港連絡バスあり。",
     },
-    hours: "9:00〜17:00（最終入館 16:30）",
-    closed: "第2・第4水曜日（祝日の場合は翌日）、年末年始。夏休み期間は無休",
+    hours: "9:00〜17:00（入館は16:30まで）。夏季延長期間は8:30〜18:00",
+    closed: "第2・第4水曜日（祝日の場合は翌日、夏休み期間は無休）、12月31日・1月1日",
     officialUrl: "https://www.dinosaur.pref.fukui.jp/",
-    ratings: { exhibit: 5, dig: 5, food: 4, family: 4 },
+    ratings: { exhibit: 5, dig: 5, food: 5, family: 4 },
     review: {
-      headline: "国内最大級の恐竜展示。日時指定予約がほぼ必須",
+      headline: "国内最大級の恐竜展示。入館は日時指定の予約制",
       body:
-        "ドーム型の展示室に全身骨格が並ぶ光景は国内随一。動くティラノサウルスのロボットは小さな子には迫力がありすぎるほど。2023年の増築で化石研究体験や特別展示室が拡充され、1日いても見終わらない密度です。",
+        "ドーム型の展示室に全身骨格が並ぶ、国内随一の恐竜博物館です。館内では化石発掘や化石クリーニングなどの「化石研究体験」ができ、春〜秋は実際の発掘現場を巡る「野外恐竜博物館」も開催されます。館内レストランは恐竜モチーフのメニューが充実しています。",
       tips: [
-        "土日祝・夏休みはオンラインの日時指定券で開館直後の枠を確保するのが最も快適",
-        "レストランは11時台前半か13時半以降が狙い目。正午前後は30分以上待つことがある",
-        "野外恐竜博物館（発掘体験）は別予約。博物館の入館予約とは別に枠を押さえる",
-        "勝山ICからの道は連休に渋滞しやすい。到着は開館30分前を目安に",
+        "入館には日時指定の観覧券が必要。公式サイトで事前購入しておくのが確実（当日券は販売上限まで）",
+        "化石研究体験は単独の事前販売がなく、常設展観覧券とセットで購入する",
+        "野外恐竜博物館は2026年の開催を終了。2027年は4月中旬〜下旬頃に再開予定",
+        "レストランは席の予約不可。混雑時は車で10分のスキージャム勝山の利用も公式に案内されている",
       ],
       reservationLevel: 4,
-      reservationNote:
-        "繁忙期は日時指定券の事前予約を推奨。野外恐竜博物館・化石発掘体験は早い時期に枠が埋まる傾向。",
+      reservationNote: "日時指定の観覧券が必要。キャンセルは常設展券なら当日16:30まで。",
       recommendedStay: "3〜5時間",
     },
     fees: { adult: 1000, student: 800, child: 500, preschool: 0 },
-    feeNotes: ["70歳以上は割引あり", "障がい者手帳提示で本人と介護者1名が無料"],
+    feeNotes: ["70歳以上 500円", "障害者手帳をお持ちの方と介護者1名は減免", "年間パスポート：一般 3,000円 / 高大生 2,400円 / 小中学生 1,500円"],
     specialExhibit: {
-      label: "特別展（例年夏開催）",
-      fees: { adult: 1800, student: 1300, child: 800, preschool: 0 },
-      note: "特別展開催中は常設展とのセット料金。金額は年度により異なるため目安です。",
+      label: "特別展（2026年度の料金を参考表示）",
+      fees: { adult: 1800, student: 1600, child: 1000, preschool: 0 },
+      note: "2026年度特別展「竜脚類」（7/10〜11/3）の料金。次回の料金は公式発表を確認してください。",
     },
     dig: {
       available: true,
-      name: "野外恐竜博物館（化石発掘体験含む）",
-      price: 1000,
-      note: "事前予約制・季節運行（概ね4〜11月）。小中学生は割引料金あり。目安として一般料金で計算。",
+      name: "化石研究体験（化石発掘プラス ほか）",
+      price: { adult: 1200, child: 600 },
+      note: "常設展観覧料とは別。小学生以上が対象（高大生 1,000円）。約120分。野外恐竜博物館（一般 1,300円 / 小中 650円）は2027年4月頃再開予定。",
     },
     restaurant: {
       inHouse: true,
-      name: "館内レストラン・カフェ",
-      note: "恐竜モチーフのメニューが充実。混雑時は整理券対応となることも。",
+      name: "館内レストラン",
+      note: "10:00〜17:00（LO 16:30）。席の予約は不可。",
       menu: [
-        { id: "fk-1", name: "恐竜カレー（化石風ライス）", price: 1300 },
-        { id: "fk-2", name: "ソースカツ丼（福井名物）", price: 1450 },
-        { id: "fk-3", name: "越前おろしそば", price: 950 },
-        { id: "fk-4", name: "お子さまプレート（恐竜型ハンバーグ）", price: 980 },
-        { id: "fk-5", name: "恐竜のたまごソフトクリーム", price: 450 },
+        { id: "fk-1", name: "スピノサウルスカレー", price: 1600 },
+        { id: "fk-2", name: "肉食ティラノバーガー", price: 1700 },
+        { id: "fk-3", name: "福井名物ソースカツ丼", price: 1350 },
+        { id: "fk-4", name: "福井名物おろし蕎麦", price: 900 },
+        { id: "fk-5", name: "ステゴサウルスキッズハンバーグプレート", price: 1300 },
+        { id: "fk-6", name: "季節のティラノパフェ", price: 800 },
       ],
     },
     souvenirs: [
-      { id: "fk-s1", name: "フクイラプトル オリジナルぬいぐるみ", price: 2200 },
-      { id: "fk-s2", name: "常設展示図録・ガイドブック", price: 1500 },
-      { id: "fk-s3", name: "恐竜たまごクッキー", price: 864 },
-      { id: "fk-s4", name: "化石レプリカ（アンモナイト）", price: 1100 },
-      { id: "fk-s5", name: "オリジナル Tシャツ（キッズ）", price: 2500 },
+      { id: "fk-s1", name: "恐竜ぬいぐるみ", price: 2500, estimate: true },
+      { id: "fk-s2", name: "展示解説書・図録", price: 1500, estimate: true },
+      { id: "fk-s3", name: "恐竜のお菓子（箱）", price: 1000, estimate: true },
+      { id: "fk-s4", name: "化石レプリカ・標本", price: 1000, estimate: true },
     ],
-    search: {
-      stay: "勝山 恐竜博物館",
-      rentacarFrom: "福井駅",
-      lunch: "勝山市 ランチ",
-      ticket: "福井県立恐竜博物館",
-    },
+    search: { stay: "勝山 恐竜博物館", rentacarFrom: "福井駅", lunch: "勝山市 ランチ", ticket: "福井県立恐竜博物館" },
+    sources: [
+      { label: "観覧料・開館時間", url: "https://www.dinosaur.pref.fukui.jp/guide/fee.html" },
+      { label: "アクセス", url: "https://www.dinosaur.pref.fukui.jp/guide/access.html" },
+      { label: "化石研究体験", url: "https://www.dinosaur.pref.fukui.jp/event/fossil.html" },
+      { label: "館内レストラン", url: "https://fpdmrest.jp/" },
+    ],
     lastVerified: "2026-11",
   },
   {
@@ -177,66 +158,64 @@ export const MUSEUMS: Museum[] = [
     area: "kanto",
     address: "東京都台東区上野公園7-20",
     access: {
-      station: "JR 上野駅 公園口から徒歩約5分",
+      station: "JR 上野駅 公園口から徒歩5分",
       ic: "首都高速 上野出口から約5分（専用駐車場なし）",
-      note: "周辺コインパーキングは土日に満車になりやすい。電車利用が無難。",
+      note: "東京メトロ上野駅・京成上野駅からは徒歩10分。",
     },
-    hours: "9:00〜17:00（入館は閉館30分前まで）",
-    closed: "月曜日（祝日の場合は火曜日）、年末年始",
+    hours: "9:00〜17:00（入館は16:30まで）",
+    closed: "月曜日（日・月曜が祝日・休日の場合は火曜日）、12月28日〜1月1日",
     officialUrl: "https://www.kahaku.go.jp/",
-    ratings: { exhibit: 5, dig: 1, food: 3, family: 5 },
+    ratings: { exhibit: 5, dig: 1, food: 4, family: 5 },
     review: {
-      headline: "都心アクセス最強。地球館地下の恐竜展示は必見",
+      headline: "都心アクセス最強。高校生以下は常設展が無料",
       body:
-        "地球館地下1階の恐竜展示は、ティラノサウルスとトリケラトプスの対峙ポーズが見どころ。恐竜以外の展示も膨大なので、目的を決めて回らないと時間が足りなくなります。高校生以下は常設展無料なのが家族連れには大きい。",
+        "地球館地下1階の恐竜展示が見どころ。恐竜以外の展示も膨大なので、目的を決めて回るのがおすすめです。小・中・高校生は常設展が無料なので、家族の入館料を大きく抑えられます。館内にはレストラン「ムーセイオン」とカフェ「くじらカフェ」があります。",
       tips: [
-        "特別展開催日は特別展側に人が集中。常設展だけなら開館直後が空いている",
-        "地球館地下1階（恐竜）→3階（大型哺乳類）の順で回ると子どもが飽きにくい",
-        "館内レストランは平日でも12時台は混雑。上野公園周辺の飲食店と使い分けを",
+        "電子チケットの事前購入が可能。窓口に並ばずに入館できる",
+        "地球館地下3階は2026年9月8日から展示改修のため閉鎖中（恐竜展示は地下1階）",
+        "レストランは10:30〜17:00。昼どきを外すと入りやすい",
       ],
       reservationLevel: 2,
-      reservationNote: "常設展は当日入館可能な日が多い。人気特別展は日時指定予約制となる場合あり。",
+      reservationNote: "常設展は予約不要。特別展は展覧会ごとに条件が異なる。",
       recommendedStay: "2〜4時間",
     },
     fees: { adult: 630, student: 630, child: 0, preschool: 0 },
     feeNotes: [
-      "常設展：一般・大学生 630円、高校生以下および65歳以上は無料",
-      "シミュレーターの「高大生」欄は大学生料金で計算（高校生は0円）",
+      "一般・大学生 630円。小・中・高校生と65歳以上は無料（年齢がわかる証明書が必要）",
+      "シミュレーターの「高大生」欄は大学生料金（630円）で計算しています。高校生は無料です",
     ],
-    specialExhibit: {
-      label: "特別展（恐竜関連は数年ごとに開催）",
-      fees: { adult: 2100, student: 2100, child: 600, preschool: 0 },
-      note: "特別展は会期ごとに料金が異なります。常設展も観覧可能な場合が多い。",
-    },
     dig: {
       available: false,
       name: "化石発掘体験なし",
-      price: 0,
-      note: "常設の発掘体験はなし。週末に学習プログラムが開催されることがある。",
+      price: null,
+      note: "常設の発掘体験はありません。土日祝に研究者の解説（ディスカバリートーク）があります。",
     },
     restaurant: {
       inHouse: true,
-      name: "館内レストラン",
-      note: "展示にちなんだ限定メニューが登場することも。",
+      name: "レストラン「ムーセイオン」・くじらカフェ",
+      note: "ムーセイオンは地球館中2階、10:30〜17:00（LOは閉店30分前）。価格は税込。",
       menu: [
-        { id: "kh-1", name: "恐竜ハンバーグプレート", price: 1500 },
-        { id: "kh-2", name: "地層カレー", price: 1350 },
-        { id: "kh-3", name: "お子さまランチ", price: 1000 },
-        { id: "kh-4", name: "コーヒー・紅茶", price: 450 },
+        { id: "kh-1", name: "ダイナソープレート（骨付き鶏モモ肉カレー）", price: 1750 },
+        { id: "kh-2", name: "キッズイタチプレート", price: 1400 },
+        { id: "kh-3", name: "ピラミッドカレー", price: 1000 },
+        { id: "kh-4", name: "恐竜ハヤシライス", price: 1000 },
+        { id: "kh-5", name: "かはくホエールプリン", price: 650 },
+        { id: "kh-6", name: "恐竜プレート（くじらカフェ）", price: 1200 },
       ],
     },
     souvenirs: [
-      { id: "kh-s1", name: "恐竜フィギュア（標本モデル）", price: 1650 },
-      { id: "kh-s2", name: "常設展ガイドブック", price: 1200 },
-      { id: "kh-s3", name: "骨格パズル（木製）", price: 1980 },
-      { id: "kh-s4", name: "オリジナルトートバッグ", price: 1500 },
+      { id: "kh-s1", name: "フタバスズキリュウぬいぐるみ", price: 2500, estimate: true },
+      { id: "kh-s2", name: "オリジナルTシャツ", price: 3000, estimate: true },
+      { id: "kh-s3", name: "オリジナルクリアファイル", price: 400, estimate: true },
+      { id: "kh-s4", name: "アートてぬぐい", price: 1200, estimate: true },
     ],
-    search: {
-      stay: "上野 ホテル",
-      rentacarFrom: "上野駅",
-      lunch: "上野 ランチ",
-      ticket: "国立科学博物館",
-    },
+    search: { stay: "上野 ホテル", rentacarFrom: "上野駅", lunch: "上野 ランチ", ticket: "国立科学博物館" },
+    sources: [
+      { label: "入館料・開館時間", url: "https://www.kahaku.go.jp/riyou/nyukan-annai/index.html" },
+      { label: "アクセス", url: "https://www.kahaku.go.jp/riyou/access.html" },
+      { label: "レストラン（メニューPDF）", url: "https://www.kahaku.go.jp/riyou/kannai-guide/restaurant.html" },
+      { label: "ミュージアムショップ", url: "https://www.kahaku.go.jp/riyou/kannai-guide/shop.html" },
+    ],
     lastVerified: "2026-11",
   },
   {
@@ -248,121 +227,113 @@ export const MUSEUMS: Museum[] = [
     address: "群馬県富岡市上黒岩1674-1",
     access: {
       station: "上信電鉄 上州富岡駅からタクシー約10分",
-      ic: "上信越自動車道 富岡IC から約10分",
-      note: "無料駐車場あり。公共交通は本数が少ないため車推奨。",
+      ic: "上信越自動車道 富岡IC・下仁田IC から国道254号経由で約7km",
+      note: "無料駐車場あり（混雑時は臨時駐車場）。上州富岡駅・上州一ノ宮駅に無料レンタル自転車あり。",
     },
     hours: "9:30〜17:00（入館は16:30まで）",
     closed: "月曜日（祝日の場合は翌日）、年末年始",
     officialUrl: "https://www.gmnh.pref.gunma.jp/",
-    ratings: { exhibit: 4, dig: 1, food: 2, family: 4 },
+    ratings: { exhibit: 4, dig: 2, food: 1, family: 4 },
     review: {
-      headline: "動くティラノと実物大ジオラマ。中学生以下無料がうれしい",
+      headline: "中学生以下は無料。企画展の時期は料金が変わる",
       body:
-        "「地球の時代」展示室のカマラサウルス全身骨格と、動くティラノサウルスのジオラマが看板。関東から日帰りしやすく、中学生以下無料なので家族の総額をかなり抑えられます。",
+        "恐竜の全身骨格を中心にした「地球の時代」展示が見どころ。中学生以下は無料なので、子ども連れの総額を抑えやすい施設です。2026年は開館30周年記念企画展「北米ジュラ紀の恐竜たち」を開催しています（後期は12月6日まで）。",
       tips: [
-        "企画展期間中は観覧料が上がる。シミュレーターの特別展オプションで比較を",
-        "館内に本格的なレストランはないため、昼食は富岡市街で済ませる計画が安心",
-        "世界遺産・富岡製糸場とセットで1日コースにしやすい",
+        "企画展開催中は一般1,300円、開催していない時期は510円。行く日の料金を確認しておく",
+        "レストランはなし。飲食は中庭と自動販売機コーナーで可能なので、お弁当持参が便利",
+        "土曜日に「化石ミニ発掘体験」が開催されることがある（無料・申込順）",
+        "世界遺産・富岡製糸場とあわせて1日コースにしやすい",
       ],
       reservationLevel: 1,
-      reservationNote: "通常は予約不要。団体利用時のみ事前連絡。",
+      reservationNote: "入館は予約不要。体験イベントはWeb申込。",
       recommendedStay: "2〜3時間",
     },
-    fees: { adult: 520, student: 300, child: 0, preschool: 0 },
-    feeNotes: ["中学生以下は無料", "企画展開催中は料金が変わります"],
+    fees: { adult: 510, student: 300, child: 0, preschool: 0 },
+    feeNotes: ["中学生以下は無料", "障害者手帳をお持ちの方と介助者1名は無料", "平日は「ぐーちょきシニアパスポート」提示で2割引"],
     specialExhibit: {
-      label: "企画展開催時",
-      fees: { adult: 670, student: 400, child: 0, preschool: 0 },
-      note: "企画展ごとに料金が異なる場合があります。",
+      label: "企画展開催中",
+      fees: { adult: 1300, student: 600, child: 0, preschool: 0 },
+      note: "2026年は「北米ジュラ紀の恐竜たち」後期展示（9/19〜12/6）。",
     },
     dig: {
-      available: false,
-      name: "常設の発掘体験なし",
-      price: 0,
-      note: "季節のイベントで化石レプリカ作りなどが行われることがある。",
+      available: true,
+      name: "化石ミニ発掘体験（サイエンス・サタデー）",
+      price: { adult: 0, child: 0 },
+      note: "参加無料（観覧券が必要）。開催日限定・小学生以上・各日12組程度で申込順。",
     },
     restaurant: {
       inHouse: false,
-      name: "休憩コーナー・周辺飲食店",
-      note: "館内は軽食・自販機程度。下記は周辺飲食店の価格目安です。",
-      menu: [
-        { id: "gm-1", name: "おっきりこみうどん（周辺店目安）", price: 1100 },
-        { id: "gm-2", name: "ソースかつ丼（周辺店目安）", price: 1200 },
-        { id: "gm-3", name: "ペットボトル飲料（自販機）", price: 160 },
-      ],
+      name: "中庭・自動販売機コーナー",
+      note: "館内にレストランはありません。中庭と自動販売機コーナーで飲食できます。",
+      menu: [],
     },
     souvenirs: [
-      { id: "gm-s1", name: "恐竜ぬいぐるみ", price: 1800 },
-      { id: "gm-s2", name: "展示解説書", price: 1000 },
-      { id: "gm-s3", name: "化石レプリカ・標本", price: 800 },
-      { id: "gm-s4", name: "恐竜消しゴムセット", price: 550 },
+      { id: "gm-s1", name: "恐竜ぬいぐるみ", price: 2000, estimate: true },
+      { id: "gm-s2", name: "恐竜フィギュア", price: 1000, estimate: true },
+      { id: "gm-s3", name: "化石標本（小）", price: 500, estimate: true },
     ],
-    search: {
-      stay: "富岡市 ホテル",
-      rentacarFrom: "高崎駅",
-      lunch: "富岡市 ランチ",
-      ticket: "群馬県立自然史博物館",
-    },
+    search: { stay: "富岡市 ホテル", rentacarFrom: "高崎駅", lunch: "富岡市 ランチ", ticket: "群馬県立自然史博物館" },
+    sources: [
+      { label: "利用案内・観覧料", url: "https://www.gmnh.pref.gunma.jp/guide/" },
+      { label: "アクセス", url: "https://www.gmnh.pref.gunma.jp/access/" },
+      { label: "化石ミニ発掘体験", url: "https://www.gmnh.pref.gunma.jp/event/id15055/" },
+    ],
     lastVerified: "2026-11",
   },
   {
     id: "mukawa",
-    name: "むかわ町穂別博物館",
+    name: "むかわ町穂別恐竜博物館",
     shortName: "むかわ",
     prefecture: "北海道",
     area: "hokkaido-tohoku",
     address: "北海道勇払郡むかわ町穂別80-6",
     access: {
-      station: "JR 鵡川駅から車で約40分（公共交通は本数わずか）",
-      ic: "道東自動車道 むかわ穂別IC から約10分",
-      note: "新千歳空港から車で約1時間15分。レンタカー移動が現実的。",
+      station: "道南バス「穂別中央」から徒歩約10分（JR鵡川駅からバス、千歳駅・南千歳駅から予約制バスあり）",
+      ic: "道東自動車道 むかわ穂別IC から約20分",
+      note: "札幌から約2時間、苫小牧から約1時間半。混雑時は臨時駐車場あり。",
     },
     hours: "9:30〜17:00（入館は16:30まで）",
-    closed: "月曜日（祝日の場合は翌日）、祝日の翌日、年末年始",
+    closed: "月曜日、祝日の翌日（月曜が祝日の場合は火・水曜）、年末年始",
     officialUrl: "https://www.town.mukawa.lg.jp/1908.htm",
-    ratings: { exhibit: 4, dig: 2, food: 1, family: 2 },
+    ratings: { exhibit: 4, dig: 1, food: 1, family: 2 },
     review: {
-      headline: "「むかわ竜（カムイサウルス）」の地元。小規模ながら密度が高い",
+      headline: "「むかわ竜」の町に2026年4月リニューアルオープン",
       body:
-        "日本最大級の全身骨格が見つかった町の博物館。規模は大きくないものの、カムイサウルス関連の展示やモササウルス類・アンモナイトの標本が充実しています。道東道からのアクセスは良好。",
+        "日本最大級の恐竜全身骨格「むかわ竜（カムイサウルス）」が見つかった町の博物館。2026年4月25日に「恐竜館」と「海洋化石館」の2館体制でリニューアルし、観覧券1枚で両方を見学できます。11月には来館者10万人を達成しました。",
       tips: [
-        "周辺に飲食店が少ないので、苫小牧・千歳方面で昼食をとってから向かうと安心",
-        "冬季は路面凍結に注意。スタッドレス対応のレンタカーを",
-        "町内のイベント時期（夏）は関連企画が増える",
+        "館内に飲食施設はないので、苫小牧・千歳方面で食事を済ませてから向かうと安心",
+        "千歳駅・南千歳駅からのバスは前々日までの予約が必要",
+        "冬は路面凍結に注意。レンタカーはスタッドレス対応を",
+        "2026年11月28日・29日に10万人達成記念イベント（記念品配布・バックヤードツアー）",
       ],
       reservationLevel: 1,
-      reservationNote: "通常予約不要。",
-      recommendedStay: "1〜1.5時間",
+      reservationNote: "個人の入館は予約不要。",
+      recommendedStay: "1.5〜2時間",
     },
-    fees: { adult: 300, student: 300, child: 100, preschool: 0 },
-    feeNotes: ["料金は改定されることがあるため公式サイトで確認してください"],
+    fees: { adult: 600, student: 600, child: 300, preschool: 0 },
+    feeNotes: ["一般は高校生以上（高大生も一般料金）", "小学生未満は無料", "年間券：一般 1,500円 / 小中学生 800円", "障害者手帳をお持ちの方と付き添い1名は無料"],
     dig: {
       available: false,
-      name: "常設の発掘体験なし",
-      price: 0,
-      note: "夏季に化石関連の体験イベントが開催される年あり。",
+      name: "発掘体験の案内なし",
+      price: null,
+      note: "公式サイトに常設の発掘体験の記載はありません。",
     },
     restaurant: {
       inHouse: false,
-      name: "周辺飲食店・道の駅",
-      note: "館内に飲食施設なし。下記は町内・周辺飲食店の価格目安です。",
-      menu: [
-        { id: "mk-1", name: "ししゃも定食（周辺店目安）", price: 1300 },
-        { id: "mk-2", name: "醤油ラーメン（周辺店目安）", price: 900 },
-        { id: "mk-3", name: "ソフトクリーム（周辺店目安）", price: 400 },
-      ],
+      name: "館内飲食施設なし",
+      note: "公式サイトに館内飲食施設の記載はありません。周辺で食事予算を見込んでください。",
+      menu: [],
     },
     souvenirs: [
-      { id: "mk-s1", name: "むかわ竜グッズ（ぬいぐるみ等）", price: 2000 },
-      { id: "mk-s2", name: "博物館解説ブックレット", price: 800 },
-      { id: "mk-s3", name: "恐竜ステッカー", price: 300 },
+      { id: "mk-s1", name: "むかわ竜グッズ", price: 1500, estimate: true },
+      { id: "mk-s2", name: "恐竜ステッカー・小物", price: 500, estimate: true },
     ],
-    search: {
-      stay: "苫小牧 ホテル",
-      rentacarFrom: "新千歳空港",
-      lunch: "むかわ町 ランチ",
-      ticket: "むかわ町 穂別博物館",
-    },
+    search: { stay: "苫小牧 ホテル", rentacarFrom: "新千歳空港", lunch: "むかわ町 ランチ", ticket: "むかわ町穂別恐竜博物館" },
+    sources: [
+      { label: "アクセス・利用案内", url: "https://www.town.mukawa.lg.jp/4356.htm" },
+      { label: "開館・休館日", url: "https://www.town.mukawa.lg.jp/2402.htm" },
+      { label: "リニューアル特設ページ", url: "https://www.town.mukawa.lg.jp/5683.htm" },
+    ],
     lastVerified: "2026-11",
   },
   {
@@ -373,118 +344,113 @@ export const MUSEUMS: Museum[] = [
     area: "kyushu",
     address: "熊本県上益城郡御船町御船995-6",
     access: {
-      station: "熊本駅・熊本桜町バスターミナルからバス約40分",
-      ic: "九州自動車道 御船IC から約5分",
-      note: "阿蘇くまもと空港から車で約30分。",
+      station: "熊本桜町バスターミナルから御船方面行きバスで約50分、「御船町恐竜博物館前」下車すぐ",
+      ic: "九州自動車道 御船IC から約10分",
+      note: "阿蘇くまもと空港からバス約50分。博物館来館者は「赤色の駐車場」を利用。",
     },
-    hours: "9:00〜17:00",
-    closed: "月曜日（祝日の場合は翌平日）、年末年始",
+    hours: "9:00〜17:00（入館は16:30まで）",
+    closed: "月曜日（祝日の場合は翌日）、年末年始。GW・夏休みなどは月曜も開館する場合あり",
     officialUrl: "https://mifunemuseum.jp/",
-    ratings: { exhibit: 4, dig: 3, food: 2, family: 4 },
+    ratings: { exhibit: 4, dig: 2, food: 1, family: 4 },
     review: {
-      headline: "研究機関としての顔も。ガラス越しに標本作業が見られる",
+      headline: "研究機関の顔も持つ博物館。工作系の体験プログラムが豊富",
       body:
-        "御船層群から産出した化石の研究拠点で、ガラス越しに化石クリーニング作業を見学できるのが特徴。ティラノサウルス全身骨格もあり、九州で恐竜展示を見るなら外せない施設です。",
+        "御船層群の化石研究の拠点で、ティラノサウルスの全身骨格などを展示しています。化石のレプリカづくりや恐竜缶バッジづくりなど、地学に関係する体験プログラムが14種類あります（材料費100〜300円）。ミュージアムショップは隣の御船町観光交流センター内にあります。",
       tips: [
-        "化石採集体験は日程限定・事前申込制のことが多い。公式サイトの告知をこまめに確認",
-        "御船ICから近く、熊本市内観光と組み合わせやすい",
-        "館内飲食は限られるため、軽食を持参するか周辺店を利用",
+        "体験プログラムは観覧料＋材料費。開催日は公式サイトの「わくわく体験教室」で確認",
+        "館内には食事ができる場所がない。隣の観光交流センターに飲食可能なスペースあり",
+        "2026年は熊本地震の影響で臨時休館したが、8月21日に再開済み",
       ],
-      reservationLevel: 3,
-      reservationNote: "体験イベントは申込制・先着順の回あり。",
+      reservationLevel: 2,
+      reservationNote: "個人の入館は予約不要。体験教室は申込制の回あり。",
       recommendedStay: "1.5〜2時間",
     },
     fees: { adult: 500, student: 300, child: 200, preschool: 0 },
-    feeNotes: ["企画展は別料金となる場合あり"],
+    feeNotes: ["小学生未満は無料（保護者同伴）", "定期観覧券（1年間）：大人 900円 / 高大生 500円 / 小中学生 300円", "障害者手帳をお持ちの方は無料"],
     dig: {
-      available: true,
-      name: "化石採集体験（イベント開催時）",
-      price: 500,
-      note: "開催日限定。料金・対象年齢は回によって異なるため目安です。",
+      available: false,
+      name: "体験プログラム（工作系）",
+      price: null,
+      note: "化石発掘体験の常設はなし。化石レプリカづくり等の体験は観覧料＋材料費100〜300円。",
     },
     restaurant: {
       inHouse: false,
-      name: "休憩スペース・周辺飲食店",
-      note: "館内に本格的なレストランはありません。下記は周辺の価格目安です。",
-      menu: [
-        { id: "mf-1", name: "熊本ラーメン（周辺店目安）", price: 850 },
-        { id: "mf-2", name: "太平燕（タイピーエン／周辺店目安）", price: 950 },
-        { id: "mf-3", name: "だご汁定食（周辺店目安）", price: 1000 },
-      ],
+      name: "隣接の観光交流センター",
+      note: "博物館内に食事ができる場所はありません。隣の観光交流センターに飲食可能なスペースがあります。",
+      menu: [],
     },
     souvenirs: [
-      { id: "mf-s1", name: "ミフネリュウ オリジナルグッズ", price: 1500 },
-      { id: "mf-s2", name: "常設展示図録", price: 1200 },
-      { id: "mf-s3", name: "化石レプリカ", price: 700 },
+      { id: "mf-s1", name: "展示解説書", price: 1000, estimate: true },
+      { id: "mf-s2", name: "御船層群バンダナ", price: 1000, estimate: true },
+      { id: "mf-s3", name: "ピンバッジ", price: 500, estimate: true },
+      { id: "mf-s4", name: "オリジナルポストカード", price: 200, estimate: true },
     ],
-    search: {
-      stay: "熊本市 ホテル",
-      rentacarFrom: "熊本空港",
-      lunch: "御船町 ランチ",
-      ticket: "御船町恐竜博物館",
-    },
+    search: { stay: "熊本市 ホテル", rentacarFrom: "熊本空港", lunch: "御船町 ランチ", ticket: "御船町恐竜博物館" },
+    sources: [
+      { label: "入館とアクセス", url: "https://mifunemuseum.jp/visit-top/general-info/" },
+      { label: "よくある質問", url: "https://mifunemuseum.jp/visit-top/faq/" },
+      { label: "体験プログラム", url: "https://mifunemuseum.jp/education-top/educational-info/taken/" },
+      { label: "ミュージアムショップ", url: "https://mifunemuseum.jp/visit-top/shop/" },
+    ],
     lastVerified: "2026-11",
   },
   {
     id: "nagasaki",
-    name: "長崎市恐竜博物館",
+    name: "長崎市恐竜博物館（ベネックス恐竜博物館）",
     shortName: "長崎",
     prefecture: "長崎県",
     area: "kyushu",
-    address: "長崎県長崎市野母町568-1（長崎市恐竜パーク内）",
+    address: "長崎県長崎市野母町568-1（長崎のもざき恐竜パーク内）",
     access: {
-      station: "JR 長崎駅前からバス約60〜70分",
-      ic: "長崎自動車道 長崎芒塚IC から約40分",
-      note: "海沿いの絶景ロケーション。軍艦島ツアーの発着エリアにも近い。",
+      station: "長崎駅前南口バス停から「樺島」行きで「恐竜パーク前」下車、徒歩1分（時間帯により乗継ぎあり）",
+      ic: "長崎南環状線 新戸町IC から約15分",
+      note: "無料駐車場：一般車212台・大型バス5台。",
     },
-    hours: "9:00〜17:00（入館は16:30まで）",
-    closed: "火曜日（祝日の場合は翌日）、年末年始",
-    officialUrl: "https://www.city.nagasaki.lg.jp/site/dinosaur-museum/",
-    ratings: { exhibit: 4, dig: 2, food: 3, family: 4 },
+    hours: "9:00〜17:00",
+    closed: "毎週月曜日（祝日を除く）",
+    officialUrl: "https://nd-museum.jp/",
+    ratings: { exhibit: 4, dig: 2, food: 1, family: 4 },
     review: {
-      headline: "海を望む新しい博物館。屋外の恐竜パークで子どもは大はしゃぎ",
+      headline: "海を望む恐竜パークの中の博物館。研究室も見学できる",
       body:
-        "2021年開館の比較的新しい施設。ティラノサウルスとトリケラトプスの全身骨格に加え、屋外の恐竜パークでは遊具や大型模型を楽しめます。展示が明るく見やすいので未就学児連れにも向いています。",
+        "2021年開館の比較的新しい博物館で、世界最大級のティラノサウルス全身骨格レプリカや、長崎で見つかった実物化石を展示しています。X線CTを備えた研究室（オープンラボ）の様子も見学できます。館内は飲食禁止です。",
       tips: [
-        "長崎市中心部からバスで1時間超。帰りのバス時刻を先に確認しておく",
-        "屋外パークは日差しを遮るものが少ない。夏は帽子・飲み物必須",
-        "週末午後は混雑しやすいので、午前中の到着がおすすめ",
+        "長崎駅からはバスで移動。平日10〜14時・土日祝10〜15時は乗継ぎが必要",
+        "館内は飲食・持ち込みとも原則不可。食事は外で計画を",
+        "軍艦島資料館とのセット券（一般 750円 / 小中高生 400円）がある",
       ],
       reservationLevel: 1,
-      reservationNote: "通常予約不要。",
-      recommendedStay: "2〜3時間（屋外パーク含む）",
+      reservationNote: "個人の入館は予約不要（団体15名以上は事前予約）。",
+      recommendedStay: "1.5〜2時間",
     },
-    fees: { adult: 500, student: 300, child: 200, preschool: 0 },
-    feeNotes: ["高校生料金は300円（大学生は一般料金の場合あり）", "屋外の恐竜パークは無料"],
+    fees: { adult: 500, student: 250, child: 250, preschool: 0 },
+    feeNotes: [
+      "小中高生 250円。大学生は一般料金（500円）です",
+      "シミュレーターの「高大生」欄は高校生料金で計算しています",
+      "年間パスポート：一般 1,250円 / 小中高生 630円",
+    ],
     dig: {
       available: false,
-      name: "常設の発掘体験なし",
-      price: 0,
-      note: "ワークショップ・体験イベントが不定期開催。",
+      name: "ワークショップ（開催日限定）",
+      price: null,
+      note: "常設の発掘体験はなし。ワークショップの内容・料金は公式サイトで確認してください。",
     },
     restaurant: {
-      inHouse: true,
-      name: "館内カフェ（軽食）",
-      note: "軽食・ドリンク中心。メニューは時期により変わります。",
-      menu: [
-        { id: "ng-1", name: "恐竜カレー", price: 900 },
-        { id: "ng-2", name: "長崎ちゃんぽん（ミニ）", price: 850 },
-        { id: "ng-3", name: "化石発掘パフェ", price: 750 },
-        { id: "ng-4", name: "ソフトドリンク", price: 350 },
-      ],
+      inHouse: false,
+      name: "館内飲食不可",
+      note: "館内での飲食・持ち込みは原則不可です。",
+      menu: [],
     },
     souvenirs: [
-      { id: "ng-s1", name: "オリジナル恐竜ぬいぐるみ", price: 2000 },
-      { id: "ng-s2", name: "展示ガイドブック", price: 1000 },
-      { id: "ng-s3", name: "恐竜クッキー（長崎限定）", price: 980 },
-      { id: "ng-s4", name: "恐竜マグネット", price: 500 },
+      { id: "ng-s1", name: "恐竜ぬいぐるみ", price: 2000, estimate: true },
+      { id: "ng-s2", name: "恐竜のお菓子", price: 1000, estimate: true },
+      { id: "ng-s3", name: "恐竜グッズ（小物）", price: 500, estimate: true },
     ],
-    search: {
-      stay: "長崎市 ホテル",
-      rentacarFrom: "長崎駅",
-      lunch: "野母崎 ランチ",
-      ticket: "長崎市恐竜博物館",
-    },
+    search: { stay: "長崎市 ホテル", rentacarFrom: "長崎駅", lunch: "野母崎 ランチ", ticket: "長崎市恐竜博物館" },
+    sources: [
+      { label: "ご利用案内・観覧料", url: "https://nd-museum.jp/guide" },
+      { label: "アクセス", url: "https://nd-museum.jp/access" },
+    ],
     lastVerified: "2026-11",
   },
   {
@@ -495,116 +461,115 @@ export const MUSEUMS: Museum[] = [
     area: "kanto",
     address: "群馬県多野郡神流町神ヶ原51-2",
     access: {
-      station: "JR 新町駅からバス約2時間（乗継あり）",
-      ic: "上信越自動車道 下仁田IC または 関越自動車道 本庄児玉IC から約60分",
-      note: "山間部のため車が必須。カーブの多い道が続く。",
+      station: "JR群馬藤岡駅・新町駅から日本中央バス奥多野線で「恐竜センター」下車、徒歩2分",
+      ic: "藤岡方面・下仁田方面からの経路案内あり（公式サイト）",
+      note: "山間部のため車が便利。冬季は道路状況に注意。",
     },
-    hours: "9:00〜17:00",
-    closed: "月曜日（祝日の場合は翌日）、冬季は休館日が増える場合あり",
-    officialUrl: "https://www.dino-nakasato.org/",
-    ratings: { exhibit: 3, dig: 4, food: 1, family: 2 },
+    hours: "9:00〜16:30（入館は16:00まで）",
+    closed: "月曜日（祝日・振替休日の場合は翌日）。12月〜3月は木曜日も休館。夏休み期間は無休",
+    officialUrl: "https://dino-nakasato.org/",
+    ratings: { exhibit: 3, dig: 5, food: 1, family: 2 },
     review: {
-      headline: "「恐竜の足跡」の町。化石発掘体験が手軽にできる",
+      headline: "ハンマーで化石を探す本格的な発掘体験ができる",
       body:
-        "国内で初めて恐竜の足跡化石が確認された「漣岩（さざなみいわ）」で知られる町の施設。モンゴルの恐竜化石展示に加え、館内で化石発掘体験（化石のクリーニング体験）ができるのが魅力。",
+        "モンゴルの恐竜化石展示や、屋外のティラノサウルス産状骨格（12m）が見どころ。センター横で行う「化石さがし体験」は、ハンマーで岩を割って化石を探す本格派です。屋外テントがあり雨天でも開催されます。",
       tips: [
-        "道中は山道。車酔いしやすい子は酔い止めを",
-        "発掘体験は当日受付の回もあるが、連休は予約が安心",
-        "周辺は飲食店が少ないので、昼食は事前に計画を",
+        "化石さがし体験はWeb予約制（電話予約不可）。当日枠は各回5名程度",
+        "冬季（12/26・27）も発掘体験あり。予約は11月25日12時頃から",
+        "館内に飲食施設の案内はなし。キッチンカーが出店する日がある",
       ],
-      reservationLevel: 2,
-      reservationNote: "化石発掘体験は繁忙期に予約推奨。",
-      recommendedStay: "1.5〜2時間",
+      reservationLevel: 3,
+      reservationNote: "化石さがし体験は事前のWeb予約が基本。",
+      recommendedStay: "2〜3時間（発掘体験含む）",
     },
-    fees: { adult: 600, student: 600, child: 300, preschool: 0 },
-    feeNotes: ["料金は改定されることがあるため公式サイトで確認してください"],
+    fees: { adult: 800, student: 800, child: 500, preschool: 0 },
+    feeNotes: [
+      "公式の区分は大人 800円 / 子供（小中学生）500円。高大生は大人料金で計算しています",
+      "未就学児の料金は公式に記載がないため0円で計算しています",
+      "障害者手帳・療育手帳の提示で本人と介護者1名は半額",
+    ],
     dig: {
       available: true,
-      name: "化石発掘体験",
-      price: 500,
-      note: "持ち帰りできる化石が見つかることも。料金は目安。",
+      name: "化石さがし体験",
+      price: { adult: 500, child: 500 },
+      note: "1人500円（冬季開催分の料金）。開催日限定・Web予約制。",
     },
     restaurant: {
       inHouse: false,
-      name: "周辺飲食店",
-      note: "館内に飲食施設なし。下記は周辺の価格目安です。",
-      menu: [
-        { id: "kn-1", name: "手打ちそば（周辺店目安）", price: 1000 },
-        { id: "kn-2", name: "こんにゃく田楽（周辺店目安）", price: 400 },
-        { id: "kn-3", name: "ペットボトル飲料（自販機）", price: 160 },
-      ],
+      name: "館内飲食施設なし",
+      note: "公式サイトに飲食施設の記載はありません。キッチンカー出店日あり。",
+      menu: [],
     },
     souvenirs: [
-      { id: "kn-s1", name: "恐竜の足跡グッズ", price: 800 },
-      { id: "kn-s2", name: "恐竜ぬいぐるみ", price: 1600 },
-      { id: "kn-s3", name: "化石標本（小）", price: 500 },
+      { id: "kn-s1", name: "恐竜ぬいぐるみ", price: 1500, estimate: true },
+      { id: "kn-s2", name: "化石標本（小）", price: 500, estimate: true },
+      { id: "kn-s3", name: "恐竜グッズ（小物）", price: 500, estimate: true },
     ],
-    search: {
-      stay: "神流町 宿",
-      rentacarFrom: "高崎駅",
-      lunch: "神流町 ランチ",
-      ticket: "神流町恐竜センター",
-    },
+    search: { stay: "神流町 宿", rentacarFrom: "高崎駅", lunch: "神流町 ランチ", ticket: "神流町恐竜センター" },
+    sources: [
+      { label: "施設案内・入館料", url: "https://dino-nakasato.org/facilities/" },
+      { label: "アクセス", url: "https://dino-nakasato.org/access/" },
+      { label: "化石さがし体験", url: "https://dino-nakasato.org/2022_fossil-excavation/" },
+    ],
     lastVerified: "2026-11",
   },
   {
     id: "tamba",
-    name: "丹波竜化石工房 ちーたんの館",
+    name: "丹波市立たんば恐竜博物館",
     shortName: "丹波",
     prefecture: "兵庫県",
     area: "kansai",
-    address: "兵庫県丹波市山南町谷川1110",
+    address: "兵庫県丹波市山南町谷川1110（丹波市役所山南支所横）",
     access: {
-      station: "JR 谷川駅から徒歩約15分",
-      ic: "舞鶴若狭自動車道 丹南篠山口IC から約30分",
-      note: "大阪から車で約1時間30分。",
+      station: "JR福知山線 久下村駅から徒歩約10分。谷川駅から路線バス・タクシー約5分",
+      ic: "舞鶴若狭自動車道 春日IC、北近畿豊岡自動車道 氷上IC から約30分",
+      note: "旧「丹波竜化石工房 ちーたんの館」がリニューアルした施設です。",
     },
-    hours: "10:00〜17:00",
-    closed: "月曜日（祝日の場合は翌日）、年末年始",
-    officialUrl: "https://www.tambaryu.jp/",
-    ratings: { exhibit: 3, dig: 4, food: 1, family: 3 },
+    hours: "10:00〜17:00（11月〜3月は16:00まで）。入館は閉館30分前まで",
+    closed: "月曜日（祝日の場合は翌平日）、12月29日〜1月3日",
+    officialUrl: "https://www.tambaryu.com/",
+    ratings: { exhibit: 4, dig: 4, food: 1, family: 3 },
     review: {
-      headline: "丹波竜発見の地。入館料が手頃で発掘体験もセットにしやすい",
+      headline: "旧ちーたんの館がリニューアル。丹波竜を中心に約300点を展示",
       body:
-        "丹波竜（タンバティタニス）の化石発掘地近くにある小さな施設。入館料が非常に安く、隣接エリアでの化石発掘体験と組み合わせても家族の負担が小さいのが魅力です。",
+        "丹波竜（タンバティタニス）の発見地にある博物館。5つのゾーンで約300点の標本を展示しています。2026年10月10日〜2027年2月23日は特別展「大恐竜展」を開催中で、この期間は入館料が特別料金です。近くの化石発見地では「元気村かみくげ」の化石発掘体験もあります（土日祝のみ）。",
       tips: [
-        "発掘体験は土日祝が中心。開催日を事前に確認",
-        "化石発掘用に汚れてもよい服と軍手を持参",
-        "丹波篠山の観光と組み合わせると満足度が上がる",
+        "「大恐竜展」期間中（〜2027/2/23）は大人1,500円。期間外の料金は公式サイトで確認",
+        "兵庫県内の小中学生は「ココロンカード」提示で入館無料",
+        "化石発掘体験は元気村かみくげ（地元運営）。料金・予約は元気村かみくげへ問い合わせ",
       ],
       reservationLevel: 2,
-      reservationNote: "発掘体験は団体予約が入る日もあるため事前確認が安心。",
-      recommendedStay: "1〜2時間（発掘体験含む）",
+      reservationNote: "個人の入館は予約不要。発掘体験は運営元へ確認。",
+      recommendedStay: "1.5〜2時間（発掘体験は別途）",
     },
-    fees: { adult: 210, student: 210, child: 100, preschool: 0 },
-    feeNotes: ["料金は改定されることがあるため公式サイトで確認してください"],
+    fees: { adult: 1500, student: 1500, child: 500, preschool: 0 },
+    feeNotes: [
+      "「大恐竜展」期間中（2026/10/10〜2027/2/23）の料金：大人（高校生以上）1,500円 / 小中学生 500円",
+      "未就学児の料金は公式に記載がないため0円で計算しています",
+      "兵庫県内の小中学生はココロンカード提示で無料",
+    ],
     dig: {
       available: true,
-      name: "化石発掘体験（丹波竜の里）",
-      price: 500,
-      note: "開催日・料金は時期により異なる場合あり。目安。",
+      name: "元気村かみくげ 化石発掘体験道場",
+      price: null,
+      note: "土日祝のみ。地元地域の運営で、料金・予約は元気村かみくげへ問い合わせ。",
     },
     restaurant: {
       inHouse: false,
-      name: "周辺飲食店",
-      note: "館内に飲食施設なし。下記は丹波エリア飲食店の価格目安です。",
-      menu: [
-        { id: "tb-1", name: "ぼたん鍋定食（周辺店目安）", price: 2500 },
-        { id: "tb-2", name: "丹波黒豆ソフト（周辺店目安）", price: 450 },
-        { id: "tb-3", name: "そば定食（周辺店目安）", price: 1100 },
-      ],
+      name: "館内飲食施設の案内なし",
+      note: "公式サイトに飲食施設の記載はありません。",
+      menu: [],
     },
     souvenirs: [
-      { id: "tb-s1", name: "ちーたん ぬいぐるみ", price: 1500 },
-      { id: "tb-s2", name: "丹波竜ガイドブック", price: 600 },
-      { id: "tb-s3", name: "丹波竜クッキー", price: 700 },
+      { id: "tb-s1", name: "丹波竜グッズ", price: 1500, estimate: true },
+      { id: "tb-s2", name: "恐竜のお菓子", price: 800, estimate: true },
+      { id: "tb-s3", name: "恐竜グッズ（小物）", price: 500, estimate: true },
     ],
-    search: {
-      stay: "丹波市 宿",
-      rentacarFrom: "新大阪駅",
-      lunch: "丹波市 山南町 ランチ",
-      ticket: "丹波竜化石工房",
-    },
+    search: { stay: "丹波市 宿", rentacarFrom: "新大阪駅", lunch: "丹波市 山南町 ランチ", ticket: "たんば恐竜博物館" },
+    sources: [
+      { label: "施設利用案内", url: "https://www.tambaryu.com/annai/annai.html" },
+      { label: "アクセス", url: "https://www.tambaryu.com/access/index.html" },
+    ],
     lastVerified: "2026-11",
   },
 ];

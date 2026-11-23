@@ -22,6 +22,11 @@ import RatingBar from "@/components/RatingBar";
 import CostSimulator from "@/components/CostSimulator";
 import PlanningLinks from "@/components/PlanningLinks";
 import SectionHeading from "@/components/SectionHeading";
+import LiveFeeBadge from "@/components/LiveFeeBadge";
+import DiscountList from "@/components/DiscountList";
+import { NearbyHotels, NearbyRestaurants } from "@/components/NearbyLists";
+import { applyLiveFees, getLiveFees } from "@/lib/liveFees";
+import { getNearbyHotels, getNearbyRestaurants } from "@/lib/nearby";
 
 type Params = { id: string };
 
@@ -30,6 +35,8 @@ export function generateStaticParams(): Params[] {
 }
 
 export const dynamicParams = false;
+// 料金・宿・飲食店の情報を1時間ごとに再生成
+export const revalidate = 3600;
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { id } = await params;
@@ -55,8 +62,15 @@ function InfoRow({ icon: Icon, label, children }: { icon: typeof Clock; label: s
 
 export default async function MuseumPage({ params }: { params: Promise<Params> }) {
   const { id } = await params;
-  const m = getMuseum(id);
-  if (!m) notFound();
+  const base = getMuseum(id);
+  if (!base) notFound();
+
+  const [live, hotels, restaurants] = await Promise.all([
+    getLiveFees(base),
+    getNearbyHotels(base),
+    getNearbyRestaurants(base),
+  ]);
+  const m = applyLiveFees(base, live);
 
   const feeRows = [
     { label: "大人（一般）", value: m.fees.adult },
@@ -128,7 +142,10 @@ export default async function MuseumPage({ params }: { params: Promise<Params> }
 
         {/* 料金 */}
         <section>
-          <SectionHeading icon={Ticket} title="料金体系" lead="税込・個人料金。団体・各種割引は公式サイトをご確認ください。" />
+          <SectionHeading icon={Ticket} title="料金体系" lead="税込・個人料金。" />
+          <div className="mb-4">
+            <LiveFeeBadge live={live} museum={base} />
+          </div>
           <div className="grid gap-6 md:grid-cols-3">
             <table className="w-full border border-slate-200 bg-white text-sm">
               <caption className="border border-b-0 border-slate-200 bg-paper px-4 py-2 text-left text-xs font-bold text-slate-ink">
@@ -147,7 +164,7 @@ export default async function MuseumPage({ params }: { params: Promise<Params> }
             </table>
             <div className="border border-slate-200 bg-white text-sm">
               <p className="border-b border-slate-200 bg-paper px-4 py-2 text-xs font-bold text-slate-ink">
-                特別展（目安）
+                特別展・企画展
               </p>
               {m.specialExhibit ? (
                 <div className="px-4 py-3">
@@ -189,12 +206,15 @@ export default async function MuseumPage({ params }: { params: Promise<Params> }
               <li key={n}>※ {n}</li>
             ))}
           </ul>
+          <div className="mt-6">
+            <DiscountList museum={m} />
+          </div>
         </section>
 
         {/* グルメ・お土産 */}
         <section className="grid gap-6 md:grid-cols-2">
           <div>
-            <SectionHeading icon={UtensilsCrossed} title={m.restaurant.inHouse ? "館内レストラン・カフェ" : "お食事（周辺の目安）"} lead={m.restaurant.note} />
+            <SectionHeading icon={UtensilsCrossed} title={m.restaurant.inHouse ? "館内レストラン・カフェ" : "お食事"} lead={m.restaurant.note} />
             {m.restaurant.menu.length === 0 ? (
               <p className="border border-slate-200 bg-paper p-4 text-sm text-slate-500">
                 公式サイトに館内飲食メニューの掲載はありません。シミュレーターでは食事予算を自由に入力できます。
@@ -239,7 +259,11 @@ export default async function MuseumPage({ params }: { params: Promise<Params> }
             title={`${m.shortName}のリアル現地滞在費シミュレーター`}
             lead="人数・体験・食べたいメニュー・お土産を選ぶと、合計金額がリアルタイムで更新されます。"
           />
-          <CostSimulator museum={m} />
+          <CostSimulator museum={m} defaultSpecial={!!live.specialActive} />
+          <div className="mt-6 grid gap-6 lg:grid-cols-2">
+            <NearbyHotels museum={m} data={hotels} />
+            <NearbyRestaurants museum={m} data={restaurants} />
+          </div>
           <div className="mt-6">
             <PlanningLinks museum={m} />
           </div>

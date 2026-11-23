@@ -82,12 +82,15 @@ function ItemPicker({
 export default function CostSimulator({
   museum: m,
   showMobileBar = true,
+  defaultSpecial = false,
 }: {
   museum: Museum;
   showMobileBar?: boolean;
+  /** 企画展開催中なら true（公式サイトから自動判定） */
+  defaultSpecial?: boolean;
 }) {
   const [party, setParty] = useState<Party>(INITIAL_PARTY);
-  const [useSpecial, setUseSpecial] = useState(false);
+  const [useSpecial, setUseSpecial] = useState(defaultSpecial && !!m.specialExhibit);
   const [digAdult, setDigAdult] = useState(0);
   const [digChild, setDigChild] = useState(0);
   const [food, setFood] = useState<Record<string, number>>({});
@@ -124,7 +127,7 @@ export default function CostSimulator({
 
   const reset = () => {
     setParty(INITIAL_PARTY);
-    setUseSpecial(false);
+    setUseSpecial(defaultSpecial && !!m.specialExhibit);
     setDigAdult(0);
     setDigChild(0);
     setCustomFood("");

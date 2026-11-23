@@ -29,16 +29,30 @@ export const AFFILIATE_IDS = {
   valuecommercePidTabelog: "",
 } as const;
 
+/**
+ * リアルタイム価格APIのキー（Vercel の Environment Variables に設定する）
+ * - RAKUTEN_APP_ID / RAKUTEN_ACCESS_KEY : 楽天ウェブサービスのアプリID・アクセスキー（宿の最安値）
+ * - RAKUTEN_AFFILIATE_ID                : 楽天アフィリエイトID（宿リンクを自動でアフィリエイト化）
+ * - HOTPEPPER_API_KEY                   : ホットペッパーグルメ Webサービスのキー（周辺飲食店・クーポン）
+ * 未設定の場合、その一覧は表示されず検索リンクのみになります。
+ */
+export const API_KEYS = {
+  rakutenAppId: process.env.RAKUTEN_APP_ID ?? "",
+  rakutenAccessKey: process.env.RAKUTEN_ACCESS_KEY ?? "",
+  rakutenAffiliateId: process.env.RAKUTEN_AFFILIATE_ID || AFFILIATE_IDS.rakuten,
+  hotpepperKey: process.env.HOTPEPPER_API_KEY ?? "",
+};
+
 /* ---------- ラッパー（アフィリエイトURLへの変換） ---------- */
 
-function wrapRakuten(url: string): string {
+export function wrapRakuten(url: string): string {
   if (!AFFILIATE_IDS.rakuten) return url;
   return `https://hb.afl.rakuten.co.jp/hgc/${AFFILIATE_IDS.rakuten}/?pc=${encodeURIComponent(
     url
   )}&m=${encodeURIComponent(url)}`;
 }
 
-function wrapValueCommerce(url: string, pid: string): string {
+export function wrapValueCommerce(url: string, pid: string): string {
   if (!AFFILIATE_IDS.valuecommerceSid || !pid) return url;
   return `https://ck.jp.ap.valuecommerce.com/servlet/referral?sid=${AFFILIATE_IDS.valuecommerceSid}&pid=${pid}&vc_url=${encodeURIComponent(
     url

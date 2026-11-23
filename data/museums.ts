@@ -74,6 +74,10 @@ export interface Museum {
   };
   souvenirs: PriceItem[];
   search: { stay: string; rentacarFrom: string; lunch: string; ticket: string };
+  /** 周辺の宿・飲食店のリアルタイム検索に使う座標（国土地理院の住所検索で取得） */
+  geo: { lat: number; lng: number };
+  /** 割引・お得な券（公式サイト記載のもの） */
+  discounts: { label: string; detail: string }[];
   sources: { label: string; url: string }[];
   lastVerified: string; // YYYY-MM
 }
@@ -142,6 +146,13 @@ export const MUSEUMS: Museum[] = [
       { id: "fk-s4", name: "化石レプリカ・標本", price: 1000, estimate: true },
     ],
     search: { stay: "勝山 恐竜博物館", rentacarFrom: "福井駅", lunch: "勝山市 ランチ", ticket: "福井県立恐竜博物館" },
+    geo: { lat: 36.081306, lng: 136.50621 },
+    discounts: [
+      { label: "年間パスポート", detail: "一般 3,000円 / 高大生 2,400円 / 小中学生 1,500円。年3回以上なら得" },
+      { label: "70歳以上", detail: "常設展 500円" },
+      { label: "団体（30名以上）", detail: "一般 800円 / 高大生 640円 / 小中学生 400円" },
+      { label: "障害者手帳", detail: "本人と介護者1名が免除（ミライロID可）" },
+    ],
     sources: [
       { label: "観覧料・開館時間", url: "https://www.dinosaur.pref.fukui.jp/guide/fee.html" },
       { label: "アクセス", url: "https://www.dinosaur.pref.fukui.jp/guide/access.html" },
@@ -210,6 +221,12 @@ export const MUSEUMS: Museum[] = [
       { id: "kh-s4", name: "アートてぬぐい", price: 1200, estimate: true },
     ],
     search: { stay: "上野 ホテル", rentacarFrom: "上野駅", lunch: "上野 ランチ", ticket: "国立科学博物館" },
+    geo: { lat: 35.716393, lng: 139.776062 },
+    discounts: [
+      { label: "18歳未満・65歳以上", detail: "常設展が無料（年齢がわかる証明書が必要）" },
+      { label: "団体（有料20名以上）", detail: "一般・大学生 510円" },
+      { label: "電子チケット", detail: "アソビュー！で事前購入可（窓口に並ばず入館）" },
+    ],
     sources: [
       { label: "入館料・開館時間", url: "https://www.kahaku.go.jp/riyou/nyukan-annai/index.html" },
       { label: "アクセス", url: "https://www.kahaku.go.jp/riyou/access.html" },
@@ -273,6 +290,13 @@ export const MUSEUMS: Museum[] = [
       { id: "gm-s3", name: "化石標本（小）", price: 500, estimate: true },
     ],
     search: { stay: "富岡市 ホテル", rentacarFrom: "高崎駅", lunch: "富岡市 ランチ", ticket: "群馬県立自然史博物館" },
+    geo: { lat: 36.275826, lng: 138.870544 },
+    discounts: [
+      { label: "中学生以下", detail: "常に無料" },
+      { label: "ぐーちょきシニアパスポート", detail: "平日に提示で2割引（団体割引と併用不可）" },
+      { label: "団体（有料20名以上）", detail: "企画展中 一般 1,040円 / 通常 410円" },
+      { label: "障害者手帳等", detail: "本人と介助者1名が無料" },
+    ],
     sources: [
       { label: "利用案内・観覧料", url: "https://www.gmnh.pref.gunma.jp/guide/" },
       { label: "アクセス", url: "https://www.gmnh.pref.gunma.jp/access/" },
@@ -329,6 +353,12 @@ export const MUSEUMS: Museum[] = [
       { id: "mk-s2", name: "恐竜ステッカー・小物", price: 500, estimate: true },
     ],
     search: { stay: "苫小牧 ホテル", rentacarFrom: "新千歳空港", lunch: "むかわ町 ランチ", ticket: "むかわ町穂別恐竜博物館" },
+    geo: { lat: 42.790371, lng: 142.129654 },
+    discounts: [
+      { label: "年間券", detail: "一般 1,500円 / 小中学生 800円" },
+      { label: "むかわ町民", detail: "開館記念日週間・国際博物館の日などは無料" },
+      { label: "障害者手帳等", detail: "本人と付き添い1名が無料" },
+    ],
     sources: [
       { label: "アクセス・利用案内", url: "https://www.town.mukawa.lg.jp/4356.htm" },
       { label: "開館・休館日", url: "https://www.town.mukawa.lg.jp/2402.htm" },
@@ -386,6 +416,12 @@ export const MUSEUMS: Museum[] = [
       { id: "mf-s4", name: "オリジナルポストカード", price: 200, estimate: true },
     ],
     search: { stay: "熊本市 ホテル", rentacarFrom: "熊本空港", lunch: "御船町 ランチ", ticket: "御船町恐竜博物館" },
+    geo: { lat: 32.714283, lng: 130.801804 },
+    discounts: [
+      { label: "定期観覧券（1年間）", detail: "大人 900円 / 高大生 500円 / 小中学生 300円。2回で元が取れる" },
+      { label: "団体（20名以上）", detail: "大人 450円 / 高大生 250円 / 小中学生 150円" },
+      { label: "障害者手帳等", detail: "常設展が無料" },
+    ],
     sources: [
       { label: "入館とアクセス", url: "https://mifunemuseum.jp/visit-top/general-info/" },
       { label: "よくある質問", url: "https://mifunemuseum.jp/visit-top/faq/" },
@@ -447,6 +483,13 @@ export const MUSEUMS: Museum[] = [
       { id: "ng-s3", name: "恐竜グッズ（小物）", price: 500, estimate: true },
     ],
     search: { stay: "長崎市 ホテル", rentacarFrom: "長崎駅", lunch: "野母崎 ランチ", ticket: "長崎市恐竜博物館" },
+    geo: { lat: 32.582142, lng: 129.744904 },
+    discounts: [
+      { label: "年間パスポート", detail: "一般 1,250円 / 小中高生 630円" },
+      { label: "軍艦島資料館セット券", detail: "一般 750円 / 小中高生 400円" },
+      { label: "団体（15名以上）", detail: "一般 400円 / 小中高生 210円" },
+      { label: "長崎市内在住の障害者手帳等", detail: "常設展が無料" },
+    ],
     sources: [
       { label: "ご利用案内・観覧料", url: "https://nd-museum.jp/guide" },
       { label: "アクセス", url: "https://nd-museum.jp/access" },
@@ -506,6 +549,12 @@ export const MUSEUMS: Museum[] = [
       { id: "kn-s3", name: "恐竜グッズ（小物）", price: 500, estimate: true },
     ],
     search: { stay: "神流町 宿", rentacarFrom: "高崎駅", lunch: "神流町 ランチ", ticket: "神流町恐竜センター" },
+    geo: { lat: 36.080009, lng: 138.840103 },
+    discounts: [
+      { label: "年間パスポート", detail: "販売あり（総合案内で案内）" },
+      { label: "団体（20名以上）", detail: "大人 750円 / 子供 450円" },
+      { label: "障害者手帳・療育手帳", detail: "本人と介護者1名が半額" },
+    ],
     sources: [
       { label: "施設案内・入館料", url: "https://dino-nakasato.org/facilities/" },
       { label: "アクセス", url: "https://dino-nakasato.org/access/" },
@@ -566,6 +615,12 @@ export const MUSEUMS: Museum[] = [
       { id: "tb-s3", name: "恐竜グッズ（小物）", price: 500, estimate: true },
     ],
     search: { stay: "丹波市 宿", rentacarFrom: "新大阪駅", lunch: "丹波市 山南町 ランチ", ticket: "たんば恐竜博物館" },
+    geo: { lat: 35.074215, lng: 135.035065 },
+    discounts: [
+      { label: "ココロンカード", detail: "兵庫県内の小中学生は提示で無料" },
+      { label: "団体（有料20名以上）", detail: "大恐竜展期間中 大人 1,300円 / 小中学生 400円" },
+      { label: "障害のある方と介助者1名", detail: "大人 800円 / 小中学生 300円" },
+    ],
     sources: [
       { label: "施設利用案内", url: "https://www.tambaryu.com/annai/annai.html" },
       { label: "アクセス", url: "https://www.tambaryu.com/access/index.html" },

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Calculator, CalendarDays, ClipboardCheck, Library, ArrowRight } from "lucide-react";
 import { MUSEUMS } from "@/data/museums";
 import { getEvents } from "@/lib/events";
+import { applyLiveFees, getLiveFees } from "@/lib/liveFees";
 import MuseumExplorer from "@/components/MuseumExplorer";
 import QuickSimulator from "@/components/QuickSimulator";
 import EventsSection from "@/components/EventsSection";
@@ -11,7 +12,9 @@ import SectionHeading from "@/components/SectionHeading";
 export const revalidate = 3600;
 
 export default async function HomePage() {
-  const events = await getEvents();
+  const [events, lives] = await Promise.all([getEvents(), Promise.all(MUSEUMS.map(getLiveFees))]);
+  const liveMuseums = MUSEUMS.map((m, i) => applyLiveFees(m, lives[i]));
+  const specialActive = Object.fromEntries(MUSEUMS.map((m, i) => [m.id, !!lives[i].specialActive]));
 
   return (
     <>
@@ -53,7 +56,7 @@ export default async function HomePage() {
             title="全国の恐竜博物館・レビュー一覧"
             lead="エリアと条件で絞り込み。評価は展示・発掘体験・グルメ・子連れ快適度の独自5段階です。"
           />
-          <MuseumExplorer museums={MUSEUMS} />
+          <MuseumExplorer museums={liveMuseums} />
         </section>
 
         <section>
@@ -63,7 +66,8 @@ export default async function HomePage() {
             title="クイック滞在費シミュレーター"
             lead="施設を選び、人数・体験・食べたいメニュー・お土産を入れるだけで合計金額を表示します。"
           />
-          <QuickSimulator museums={MUSEUMS} />
+          <p className="mb-4 text-xs text-slate-500">入館料は各館の公式サイトから6時間ごとに自動で取得しています。</p>
+          <QuickSimulator museums={liveMuseums} specialActive={specialActive} />
         </section>
 
         <section>

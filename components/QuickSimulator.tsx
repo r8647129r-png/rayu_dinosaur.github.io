@@ -7,7 +7,13 @@ import type { Museum } from "@/data/museums";
 import CostSimulator from "./CostSimulator";
 import PlanningLinks from "./PlanningLinks";
 
-export default function QuickSimulator({ museums }: { museums: Museum[] }) {
+export default function QuickSimulator({
+  museums,
+  specialActive = {},
+}: {
+  museums: Museum[];
+  specialActive?: Record<string, boolean>;
+}) {
   const [id, setId] = useState(museums[0]?.id ?? "");
   const museum = museums.find((m) => m.id === id) ?? museums[0];
   if (!museum) return null;
@@ -38,7 +44,7 @@ export default function QuickSimulator({ museums }: { museums: Museum[] }) {
         </Link>
       </div>
       {/* key で施設切替時に入力をリセット */}
-      <CostSimulator key={museum.id} museum={museum} showMobileBar={false} />
+      <CostSimulator key={museum.id} museum={museum} showMobileBar={false} defaultSpecial={!!specialActive[museum.id]} />
       <PlanningLinks museum={museum} />
     </div>
   );

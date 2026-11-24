@@ -27,6 +27,12 @@ export const AFFILIATE_IDS = {
   asoviewA8mat: "",
   /** 食べログ（バリューコマース等で提携する場合の pid） */
   valuecommercePidTabelog: "",
+  /**
+   * バリューコマース LinkSwitch の vc_pid（数字）。
+   * 設定すると、提携済み広告主（じゃらん・ホットペッパー・JTB等）へのリンクが
+   * 閲覧時に自動でアフィリエイトリンクに変換されます。
+   */
+  valuecommerceLinkSwitchPid: "",
   /** JTB（バリューコマースで提携後に pid を貼る） */
   valuecommercePidJtb: "",
 } as const;

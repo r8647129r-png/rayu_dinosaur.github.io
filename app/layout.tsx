@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
+import { AFFILIATE_IDS } from "@/config/affiliates";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 
@@ -19,6 +21,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SiteHeader />
         <main>{children}</main>
         <SiteFooter />
+        {AFFILIATE_IDS.valuecommerceLinkSwitchPid && (
+          <>
+            {/* バリューコマース LinkSwitch：提携済み広告主へのリンクを自動でアフィリエイト化 */}
+            <Script id="vc-linkswitch-pid" strategy="afterInteractive">
+              {`var vc_pid = "${AFFILIATE_IDS.valuecommerceLinkSwitchPid}";`}
+            </Script>
+            <Script src="https://aml.valuecommerce.com/vcdal.js" strategy="afterInteractive" />
+          </>
+        )}
       </body>
     </html>
   );

@@ -20,6 +20,8 @@ export const AREAS: { key: AreaKey; label: string }[] = [
 
 export type Rating = 1 | 2 | 3 | 4 | 5;
 
+export type HighlightIcon = "skeleton" | "dig" | "free" | "food" | "lab" | "view" | "calendar" | "family";
+
 export interface PriceItem {
   id: string;
   name: string;
@@ -56,6 +58,8 @@ export interface Museum {
     reservationNote: string;
     recommendedStay: string;
   };
+  /** 見どころ（data/images.ts の gallery と同じ順番。最大3つ） */
+  highlights: { icon: HighlightIcon; title: string; text: string }[];
   fees: FeeTable;
   feeNotes: string[];
   specialExhibit?: { label: string; fees: FeeTable; note: string };
@@ -113,6 +117,11 @@ export const MUSEUMS: Museum[] = [
       reservationNote: "日時指定の観覧券が必要。キャンセルは常設展券なら当日16:30まで。",
       recommendedStay: "3〜5時間",
     },
+    highlights: [
+      { icon: "skeleton", title: "ドームに並ぶ全身骨格", text: "国内最大級の恐竜展示。大型の全身骨格がずらりと並ぶ光景は圧巻です。" },
+      { icon: "dig", title: "化石研究体験", text: "化石発掘やクリーニングなど本格的な体験ができます（小学生以上）。" },
+      { icon: "calendar", title: "野外恐竜博物館", text: "春〜秋は実際の発掘現場をバスで巡るツアーを開催（2027年は4月頃再開予定）。" },
+    ],
     fees: { adult: 1000, student: 800, child: 500, preschool: 0 },
     feeNotes: ["70歳以上 500円", "障害者手帳をお持ちの方と介護者1名は減免", "年間パスポート：一般 3,000円 / 高大生 2,400円 / 小中学生 1,500円"],
     specialExhibit: {
@@ -190,6 +199,11 @@ export const MUSEUMS: Museum[] = [
       reservationNote: "常設展は予約不要。特別展は展覧会ごとに条件が異なる。",
       recommendedStay: "2〜4時間",
     },
+    highlights: [
+      { icon: "skeleton", title: "地球館地下1階の恐竜展示", text: "国立の博物館ならではの充実した恐竜展示。恐竜以外の展示も膨大です。" },
+      { icon: "free", title: "高校生以下は常設展無料", text: "小・中・高校生と65歳以上は無料。家族の入館料を抑えられます。" },
+      { icon: "food", title: "恐竜メニューのレストラン", text: "「ダイナソープレート」など展示にちなんだメニューがそろいます。" },
+    ],
     fees: { adult: 630, student: 630, child: 0, preschool: 0 },
     feeNotes: [
       "一般・大学生 630円。小・中・高校生と65歳以上は無料（年齢がわかる証明書が必要）",
@@ -265,6 +279,11 @@ export const MUSEUMS: Museum[] = [
       reservationNote: "入館は予約不要。体験イベントはWeb申込。",
       recommendedStay: "2〜3時間",
     },
+    highlights: [
+      { icon: "skeleton", title: "「地球の時代」の恐竜展示", text: "恐竜の全身骨格を中心に、地球の歴史をたどる展示が見どころです。" },
+      { icon: "free", title: "中学生以下は無料", text: "いつ行っても中学生以下は無料。子連れの総額を抑えやすい施設です。" },
+      { icon: "calendar", title: "充実の企画展", text: "2026年は開館30周年記念「北米ジュラ紀の恐竜たち」を開催（12/6まで）。" },
+    ],
     fees: { adult: 510, student: 300, child: 0, preschool: 0 },
     feeNotes: ["中学生以下は無料", "障害者手帳をお持ちの方と介助者1名は無料", "平日は「ぐーちょきシニアパスポート」提示で2割引"],
     specialExhibit: {
@@ -334,6 +353,11 @@ export const MUSEUMS: Museum[] = [
       reservationNote: "個人の入館は予約不要。",
       recommendedStay: "1.5〜2時間",
     },
+    highlights: [
+      { icon: "skeleton", title: "むかわ竜の町", text: "日本最大級の恐竜全身骨格「むかわ竜（カムイサウルス）」の発見地です。" },
+      { icon: "view", title: "恐竜館と海洋化石館", text: "観覧券1枚で2つの館を見学できます。" },
+      { icon: "calendar", title: "2026年4月リニューアル", text: "リニューアル後、半年余りで来館者10万人を達成しました。" },
+    ],
     fees: { adult: 600, student: 600, child: 300, preschool: 0 },
     feeNotes: ["一般は高校生以上（高大生も一般料金）", "小学生未満は無料", "年間券：一般 1,500円 / 小中学生 800円", "障害者手帳をお持ちの方と付き添い1名は無料"],
     dig: {
@@ -395,6 +419,11 @@ export const MUSEUMS: Museum[] = [
       reservationNote: "個人の入館は予約不要。体験教室は申込制の回あり。",
       recommendedStay: "1.5〜2時間",
     },
+    highlights: [
+      { icon: "lab", title: "化石研究の拠点", text: "御船層群の化石研究を行う研究機関としての顔も持つ博物館です。" },
+      { icon: "dig", title: "14種類の体験プログラム", text: "化石のレプリカづくりなど、材料費100〜300円で体験できます。" },
+      { icon: "skeleton", title: "ティラノサウルスの全身骨格", text: "迫力ある全身骨格を間近で見られます。" },
+    ],
     fees: { adult: 500, student: 300, child: 200, preschool: 0 },
     feeNotes: ["小学生未満は無料（保護者同伴）", "定期観覧券（1年間）：大人 900円 / 高大生 500円 / 小中学生 300円", "障害者手帳をお持ちの方は無料"],
     dig: {
@@ -459,6 +488,11 @@ export const MUSEUMS: Museum[] = [
       reservationNote: "個人の入館は予約不要（団体15名以上は事前予約）。",
       recommendedStay: "1.5〜2時間",
     },
+    highlights: [
+      { icon: "skeleton", title: "世界最大級のティラノサウルス", text: "全長約13mのティラノサウルス全身骨格レプリカを展示しています。" },
+      { icon: "lab", title: "オープンラボ", text: "X線CTを備えた研究室で、化石研究の様子を見学できます。" },
+      { icon: "view", title: "海を望む恐竜パーク", text: "長崎のもざき恐竜パークの中にあり、軍艦島も望めるロケーションです。" },
+    ],
     fees: { adult: 500, student: 250, child: 250, preschool: 0 },
     feeNotes: [
       "小中高生 250円。大学生は一般料金（500円）です",
@@ -525,6 +559,11 @@ export const MUSEUMS: Museum[] = [
       reservationNote: "化石さがし体験は事前のWeb予約が基本。",
       recommendedStay: "2〜3時間（発掘体験含む）",
     },
+    highlights: [
+      { icon: "dig", title: "本格的な化石さがし体験", text: "ハンマーで岩を割って化石を探す体験。屋外テントで雨天も開催されます。" },
+      { icon: "skeleton", title: "ティラノサウルス産状骨格", text: "野外に全長12mのティラノサウルス産状骨格を展示しています。" },
+      { icon: "view", title: "モンゴルの恐竜化石", text: "モンゴルで発掘された恐竜化石の展示が見どころです。" },
+    ],
     fees: { adult: 800, student: 800, child: 500, preschool: 0 },
     feeNotes: [
       "公式の区分は大人 800円 / 子供（小中学生）500円。高大生は大人料金で計算しています",
@@ -591,6 +630,11 @@ export const MUSEUMS: Museum[] = [
       reservationNote: "個人の入館は予約不要。発掘体験は運営元へ確認。",
       recommendedStay: "1.5〜2時間（発掘体験は別途）",
     },
+    highlights: [
+      { icon: "skeleton", title: "丹波竜の発見地", text: "丹波竜（タンバティタニス）が見つかった地にある博物館です。" },
+      { icon: "view", title: "5ゾーン・約300点の展示", text: "丹波の地層から脊椎動物の進化まで、楽しみながら学べます。" },
+      { icon: "calendar", title: "特別展「大恐竜展」", text: "世界初公開の頭突き恐竜の実物化石などを展示（2027/2/23まで）。" },
+    ],
     fees: { adult: 1500, student: 1500, child: 500, preschool: 0 },
     feeNotes: [
       "「大恐竜展」期間中（2026/10/10〜2027/2/23）の料金：大人（高校生以上）1,500円 / 小中学生 500円",

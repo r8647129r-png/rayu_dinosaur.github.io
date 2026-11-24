@@ -12,6 +12,17 @@ const config: Config = {
           light: "#2D6A4F",
           pale: "#E8F0EC",
         },
+        // 予約・お得訴求のCTA用アクセントカラー
+        cta: {
+          DEFAULT: "#EA580C",
+          dark: "#C2410C",
+          pale: "#FFF4EC",
+        },
+        deal: {
+          DEFAULT: "#059669",
+          dark: "#047857",
+          pale: "#ECFDF5",
+        },
         slate: {
           ink: "#334155",
         },

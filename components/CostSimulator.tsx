@@ -5,6 +5,7 @@ import { Calculator, Gift, Pickaxe, RotateCcw, Ticket, Users, UtensilsCrossed } 
 import type { FeeTable, Museum, PriceItem } from "@/data/museums";
 import { yen } from "@/lib/format";
 import Counter from "./Counter";
+import BookingCTA from "./museum/BookingCTA";
 
 type Party = Record<keyof FeeTable, number>;
 
@@ -83,11 +84,14 @@ export default function CostSimulator({
   museum: m,
   showMobileBar = true,
   defaultSpecial = false,
+  showBooking = true,
 }: {
   museum: Museum;
   showMobileBar?: boolean;
   /** 企画展開催中なら true（公式サイトから自動判定） */
   defaultSpecial?: boolean;
+  /** 試算結果の下に予約導線を表示する */
+  showBooking?: boolean;
 }) {
   const [party, setParty] = useState<Party>(INITIAL_PARTY);
   const [useSpecial, setUseSpecial] = useState(defaultSpecial && !!m.specialExhibit);
@@ -348,6 +352,9 @@ export default function CostSimulator({
             </p>
           </div>
         </div>
+        {showBooking && (
+          <BookingCTA museum={m} adults={party.adult + party.student} children={party.child + party.preschool} />
+        )}
       </aside>
 
       {showMobileBar && (

@@ -16,7 +16,7 @@ export default function Counter({
   label: string;
 }) {
   const btn =
-    "flex h-8 w-8 items-center justify-center border border-slate-300 bg-white text-slate-ink hover:border-forest hover:text-forest disabled:cursor-not-allowed disabled:opacity-30";
+    "flex h-10 w-10 items-center justify-center border border-slate-300 bg-white text-slate-ink hover:border-forest hover:text-forest disabled:cursor-not-allowed disabled:opacity-30";
   return (
     <div className="flex items-center" role="group" aria-label={label}>
       <button
@@ -28,7 +28,7 @@ export default function Counter({
       >
         <Minus className="h-4 w-4" strokeWidth={2} aria-hidden />
       </button>
-      <output className="flex h-8 w-10 items-center justify-center border-y border-slate-300 bg-paper text-sm font-semibold tabular-nums text-slate-ink">
+      <output className="flex h-10 w-11 items-center justify-center border-y border-slate-300 bg-paper text-sm font-semibold tabular-nums text-slate-ink">
         {value}
       </output>
       <button

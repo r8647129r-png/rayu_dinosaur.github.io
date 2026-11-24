@@ -30,7 +30,7 @@ function subtitle(m: Museum, c: LinkCategory): string {
     case "stay":
       return `${m.search.stay} 周辺`;
     case "tour":
-      return "首都圏発の国内ツアー";
+      return "JTB旅物語の国内ツアー（出発地を選択）";
     case "rentacar":
       return `${m.search.rentacarFrom} 発着`;
     case "lunch":

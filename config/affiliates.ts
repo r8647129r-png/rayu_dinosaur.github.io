@@ -101,17 +101,23 @@ export const PROVIDERS: ProviderDef[] = [
         AFFILIATE_IDS.valuecommercePidJalan
       ),
   },
-  // 1-2. ツアー
-  {
-    id: "jtb-tour",
-    label: "JTB旅物語",
+  // 1-2. ツアー（JTB旅物語・出発地別）
+  ...([
+    ["", "首都圏発"],
+    ["hokkaido", "北海道発"],
+    ["chubu", "中部発"],
+    ["kansai", "関西発"],
+    ["kyushu", "九州発"],
+  ] as const).map<ProviderDef>(([course, name]) => ({
+    id: `jtb-tour-${course || "tokyo"}`,
+    label: `JTB ${name}`,
     category: "tour",
     buildUrl: (kw) =>
       wrapValueCommerce(
-        `https://www.jtb.co.jp/med/kokunai/rweb/kensaku/pages/kensakukekka_d.aspx?freeword=${q(kw)}&sort=1`,
+        `https://www.jtb.co.jp/med/kokunai/rweb/kensaku/pages/kensakukekka_d.aspx?${course ? `course=${course}&` : ""}freeword=${q(kw)}&sort=1`,
         AFFILIATE_IDS.valuecommercePidJtb
       ),
-  },
+  })),
   // 2. レンタカー
   {
     id: "rakuten-rentacar",

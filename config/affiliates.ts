@@ -20,7 +20,7 @@ export const AFFILIATE_IDS = {
   /** 楽天アフィリエイトID 例: "1a2b3c4d.5e6f7a8b.1a2b3c4e.5e6f7a8c" */
   rakuten: "59e786fc.adf7c4d6.59e786fd.51ef80ae",
   /** バリューコマース（じゃらん等）: sid / pid */
-  valuecommerceSid: "",
+  valuecommerceSid: "3789612",
   valuecommercePidJalan: "",
   valuecommercePidHotpepper: "",
   /** A8.net 等でアソビュー！を扱う場合の a8mat パラメータ */

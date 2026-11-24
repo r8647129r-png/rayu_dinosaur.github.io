@@ -27,6 +27,8 @@ export const AFFILIATE_IDS = {
   asoviewA8mat: "",
   /** 食べログ（バリューコマース等で提携する場合の pid） */
   valuecommercePidTabelog: "",
+  /** JTB（バリューコマースで提携後に pid を貼る） */
+  valuecommercePidJtb: "",
 } as const;
 
 /**
@@ -70,7 +72,7 @@ const q = (s: string) => encodeURIComponent(s);
 
 /* ---------- 各サービスの検索URL定義 ---------- */
 
-export type LinkCategory = "stay" | "rentacar" | "lunch" | "ticket";
+export type LinkCategory = "stay" | "tour" | "rentacar" | "lunch" | "ticket";
 
 export interface ProviderDef {
   id: string;
@@ -97,6 +99,17 @@ export const PROVIDERS: ProviderDef[] = [
       wrapValueCommerce(
         `https://www.jalan.net/uw/uwp1700/uww1701.do?keyword=${q(kw)}`,
         AFFILIATE_IDS.valuecommercePidJalan
+      ),
+  },
+  // 1-2. ツアー
+  {
+    id: "jtb-tour",
+    label: "JTB旅物語",
+    category: "tour",
+    buildUrl: (kw) =>
+      wrapValueCommerce(
+        `https://www.jtb.co.jp/med/kokunai/rweb/kensaku/pages/kensakukekka_d.aspx?freeword=${q(kw)}&sort=1`,
+        AFFILIATE_IDS.valuecommercePidJtb
       ),
   },
   // 2. レンタカー
@@ -148,6 +161,10 @@ export const CATEGORY_META: Record<LinkCategory, { title: string; description: s
   stay: {
     title: "周辺の宿泊施設・恐竜ルームの空室確認",
     description: "施設周辺のホテル・旅館の空室と料金を比較",
+  },
+  tour: {
+    title: "恐竜博物館をめぐるツアー",
+    description: "交通・宿がセットのパッケージツアーを探す",
   },
   rentacar: {
     title: "最寄り駅・空港からのレンタカー料金比較",

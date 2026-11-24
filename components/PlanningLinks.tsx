@@ -1,9 +1,10 @@
-import { BedDouble, Car, ExternalLink, Ticket, Utensils, type LucideIcon } from "lucide-react";
+import { BedDouble, Bus, Car, ExternalLink, Ticket, Utensils, type LucideIcon } from "lucide-react";
 import { CATEGORY_META, DISCLOSURE_TEXT, PROVIDERS, type LinkCategory } from "@/config/affiliates";
 import type { Museum } from "@/data/museums";
 
 const ICONS: Record<LinkCategory, LucideIcon> = {
   stay: BedDouble,
+  tour: Bus,
   rentacar: Car,
   lunch: Utensils,
   ticket: Ticket,
@@ -13,6 +14,8 @@ function keywordFor(m: Museum, c: LinkCategory): string {
   switch (c) {
     case "stay":
       return m.search.stay;
+    case "tour":
+      return "恐竜";
     case "rentacar":
       return m.search.rentacarFrom;
     case "lunch":
@@ -26,6 +29,8 @@ function subtitle(m: Museum, c: LinkCategory): string {
   switch (c) {
     case "stay":
       return `${m.search.stay} 周辺`;
+    case "tour":
+      return "首都圏発の国内ツアー";
     case "rentacar":
       return `${m.search.rentacarFrom} 発着`;
     case "lunch":
@@ -37,7 +42,7 @@ function subtitle(m: Museum, c: LinkCategory): string {
 
 export default function PlanningLinks({
   museum: m,
-  categories = ["stay", "rentacar", "lunch", "ticket"],
+  categories = ["stay", "tour", "rentacar", "lunch", "ticket"],
 }: {
   museum: Museum;
   categories?: LinkCategory[];

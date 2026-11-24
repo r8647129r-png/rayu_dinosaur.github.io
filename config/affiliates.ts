@@ -18,7 +18,7 @@ export const DISCLOSURE_TEXT =
 /** 各ASPのトラッキングID（ここを書き換えるだけでOK） */
 export const AFFILIATE_IDS = {
   /** 楽天アフィリエイトID 例: "1a2b3c4d.5e6f7a8b.1a2b3c4e.5e6f7a8c" */
-  rakuten: "",
+  rakuten: "59e786fc.adf7c4d6.59e786fd.51ef80ae",
   /** バリューコマース（じゃらん等）: sid / pid */
   valuecommerceSid: "",
   valuecommercePidJalan: "",

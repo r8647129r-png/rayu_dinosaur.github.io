@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { MUSEUMS, areaLabel, getMuseum } from "@/data/museums";
 import { yen } from "@/lib/format";
+import { wrapRakuten } from "@/config/affiliates";
 import RatingBar from "@/components/RatingBar";
 import CostSimulator from "@/components/CostSimulator";
 import PlanningLinks from "@/components/PlanningLinks";
@@ -248,6 +249,18 @@ export default async function MuseumPage({ params }: { params: Promise<Params> }
                 ))}
               </tbody>
             </table>
+            <a
+              href={wrapRakuten("https://search.rakuten.co.jp/search/mall/%E6%81%90%E7%AB%9C+%E3%82%B0%E3%83%83%E3%82%BA/")}
+              target="_blank"
+              rel="noopener noreferrer sponsored"
+              className="mt-3 flex items-center justify-between border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-ink hover:border-forest hover:text-forest"
+            >
+              <span>
+                恐竜グッズを楽天市場で探す
+                <span className="block text-xs text-slate-500">行く前の予習や、買い逃したお土産に（広告）</span>
+              </span>
+              <ExternalLink className="h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden />
+            </a>
           </div>
         </section>
 
